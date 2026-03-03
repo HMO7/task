@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TaskFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080808;--bg2:#0f0f0f;--bg3:#161616;--bg4:#1e1e1e;
+  --border:#1f1f1f;--border2:#2a2a2a;--border3:#383838;
+  --text:#efefef;--text2:#777;--text3:#3a3a3a;--white:#fff;
+  --blue:#3b82f6;--red:#ef4444;--yellow:#eab308;--green:#22c55e;
+  --meet:#7dda7d;--r:4px;
+  --sidebar:230px;--topbar:50px;
+}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+input,select,textarea,button{font-family:inherit}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ══════════════════════════════════
+   LOGIN
+══════════════════════════════════ */
+#login-page{
+  min-height:100vh;display:flex;align-items:stretch;
+  background:var(--bg);position:relative;overflow:hidden;
+}
+
+/* Grid lines background */
+#login-page::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size:60px 60px;
+  pointer-events:none;
+}
+
+.login-left{
+  flex:1;display:flex;flex-direction:column;
+  justify-content:center;padding:60px 72px;
+  position:relative;
+}
+
+.login-wordmark{
+  position:absolute;top:40px;left:48px;
+  display:flex;align-items:center;gap:10px;
+}
+.login-wordmark-dot{
+  width:28px;height:28px;border-radius:3px;
+  background:var(--white);display:flex;align-items:center;justify-content:center;
+  font-size:14px;
+}
+.login-wordmark-text{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:14px;font-weight:600;color:var(--white);letter-spacing:.5px;
+}
+
+.login-headline{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(52px,7vw,86px);
+  line-height:.95;letter-spacing:2px;
+  color:var(--white);margin-bottom:20px;
+}
+.login-headline span{color:var(--text2)}
+.login-sub{
+  font-size:13px;color:var(--text2);line-height:1.7;
+  max-width:340px;margin-bottom:48px;
+  font-family:'IBM Plex Mono',monospace;
+}
+
+.login-features{display:flex;flex-direction:column;gap:10px}
+.login-feat{
+  display:flex;align-items:center;gap:12px;
+  font-size:11px;color:var(--text2);
+  font-family:'IBM Plex Mono',monospace;letter-spacing:.5px;
+}
+.login-feat-dot{
+  width:6px;height:6px;border-radius:50%;flex-shrink:0;
+}
+
+.login-right{
+  width:420px;display:flex;align-items:center;justify-content:center;
+  padding:48px 56px;
+  border-left:1px solid var(--border);
+  background:var(--bg2);
+  position:relative;
+}
+
+.login-card{width:100%;animation:fadeUp .5s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+.lc-label{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;
+  letter-spacing:2.5px;text-transform:uppercase;color:var(--text3);
+  margin-bottom:32px;
+}
+.lc-title{font-size:22px;font-weight:600;color:var(--white);margin-bottom:6px;letter-spacing:-.3px}
+.lc-sub{font-size:12px;color:var(--text2);margin-bottom:32px}
+
+.login-error{
+  background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);
+  color:#f87171;padding:9px 13px;border-radius:var(--r);
+  font-size:11px;margin-bottom:14px;display:none;
+  font-family:'IBM Plex Mono',monospace;
+}
+.login-error.show{display:block}
+.login-attempts{font-size:10px;color:var(--yellow);margin-top:8px;display:none;font-family:'IBM Plex Mono',monospace;text-align:center}
+.login-attempts.show{display:block}
+
+.lfield{margin-bottom:16px}
+.lfield label{
+  display:block;font-size:9px;font-weight:600;color:var(--text2);
+  text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;
+  font-family:'IBM Plex Mono',monospace;
+}
+.lfield input{
+  width:100%;background:var(--bg);border:1px solid var(--border2);
+  border-radius:var(--r);padding:11px 13px;color:var(--text);
+  font-size:13px;outline:none;transition:border-color .15s;
+}
+.lfield input:focus{border-color:var(--border3)}
+.lfield input::placeholder{color:var(--text3)}
+
+.login-btn{
+  width:100%;padding:12px;background:var(--white);border:none;
+  border-radius:var(--r);color:#000;font-size:12px;font-weight:600;
+  cursor:pointer;transition:opacity .15s;margin-top:4px;
+  font-family:'IBM Plex Mono',monospace;letter-spacing:1px;
+  text-transform:uppercase;
+}
+.login-btn:hover{opacity:.88}
+.login-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.login-hint{
+  margin-top:24px;padding:14px;border:1px solid var(--border);
+  border-radius:var(--r);background:var(--bg3);
+}
+.login-hint-label{font-size:9px;color:var(--text3);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.login-user{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.login-user:last-child{margin-bottom:0}
+.login-user-tag{
+  font-size:9px;font-family:'IBM Plex Mono',monospace;
+  background:var(--bg4);border:1px solid var(--border2);
+  padding:2px 6px;border-radius:2px;color:var(--text2);
+  text-transform:uppercase;letter-spacing:.8px;
+}
+.login-user-email{font-size:10px;color:var(--text2);font-family:'IBM Plex Mono',monospace}
+
+/* ══════════════════════════════════
+   APP SHELL
+══════════════════════════════════ */
+#app-page{display:none;min-height:100vh}
+#app-page.show{display:flex}
+.app-layout{display:flex;min-height:100vh;width:100%}
+
+/* ══ SIDEBAR ══ */
+.sidebar{
+  width:var(--sidebar);background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:fixed;top:0;bottom:0;left:0;z-index:300;
+  transition:transform .25s ease;overflow:hidden;
+}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:299}
+
+/* Brand */
+.sb-brand{
+  display:flex;align-items:center;gap:9px;
+  padding:18px 14px 14px;border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.sb-brand-dot{
+  width:24px;height:24px;border-radius:3px;background:var(--white);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;flex-shrink:0;
+}
+.sb-brand-name{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--white)}
+
+/* App switcher */
+.sb-switcher{display:flex;padding:10px;gap:4px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-switch-btn{
+  flex:1;padding:7px 4px;border:1px solid var(--border2);background:transparent;
+  border-radius:var(--r);color:var(--text2);font-size:9px;
+  font-family:'IBM Plex Mono',monospace;letter-spacing:.8px;text-transform:uppercase;
+  cursor:pointer;transition:all .15s;text-align:center;
+}
+.sb-switch-btn.active{background:var(--white);color:#000;border-color:var(--white)}
+.sb-switch-btn:hover:not(.active){border-color:var(--border3);color:var(--text)}
+
+/* Nav */
+.sb-nav{display:flex;flex-direction:column;gap:1px;padding:10px;flex:1;overflow-y:auto}
+.sb-section-label{
+  font-size:8px;font-family:'IBM Plex Mono',monospace;
+  letter-spacing:2px;text-transform:uppercase;color:var(--text3);
+  padding:10px 6px 6px;
+}
+.nav-btn{
+  display:flex;align-items:center;gap:9px;padding:8px 10px;
+  border-radius:var(--r);border:none;background:transparent;
+  color:var(--text2);font-size:12px;cursor:pointer;
+  transition:all .15s;text-align:left;width:100%;
+  font-family:'IBM Plex Sans',sans-serif;
+}
+.nav-btn:hover{background:var(--bg3);color:var(--text)}
+.nav-btn.active{background:var(--bg3);color:var(--white);border:1px solid var(--border2)}
+.nav-btn .nb-icon{width:16px;text-align:center;font-size:13px;flex-shrink:0;opacity:.6}
+.nav-btn.active .nb-icon{opacity:1}
+/* Outreach nav accent */
+.nav-btn.out-nav .nb-icon{color:var(--meet)}
+.nav-btn.out-nav.active{border-color:rgba(125,218,125,.2)}
+
+/* Streak pill */
+.sb-streak{padding:8px 10px;flex-shrink:0}
+.sb-streak-pill{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 10px;background:var(--bg3);
+  border:1px solid var(--border2);border-radius:var(--r);
+}
+.sb-streak-num{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--white)}
+.sb-streak-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-family:'IBM Plex Mono',monospace}
+
+/* User */
+.sb-user{display:flex;align-items:center;gap:9px;padding:10px 14px;border-top:1px solid var(--border);flex-shrink:0}
+.sb-avatar{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--bg3);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:600;flex-shrink:0;
+  color:var(--white);font-family:'IBM Plex Mono',monospace;
+}
+.sb-uname{font-size:12px;font-weight:500;color:var(--text)}
+.sb-urole{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-family:'IBM Plex Mono',monospace}
+.logout-btn{
+  display:flex;align-items:center;gap:6px;margin:0 10px 10px;
+  padding:7px 10px;border-radius:var(--r);border:1px solid var(--border);
+  background:transparent;color:var(--text3);font-size:11px;
+  cursor:pointer;transition:all .15s;font-family:'IBM Plex Mono',monospace;
+}
+.logout-btn:hover{border-color:var(--border2);color:var(--text2)}
+
+/* ══ MAIN ══ */
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:var(--topbar);
+  border-bottom:1px solid var(--border);background:var(--bg);
+  position:sticky;top:0;z-index:100;
+}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.hamburger{display:none;background:none;border:none;color:var(--text2);cursor:pointer;padding:4px}
+.page-title{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:var(--text2);letter-spacing:.5px}
+
+/* Breadcrumb style mode indicator */
+.mode-tag{
+  font-size:9px;font-family:'IBM Plex Mono',monospace;
+  background:var(--bg3);border:1px solid var(--border2);
+  padding:2px 8px;border-radius:2px;color:var(--text2);
+  text-transform:uppercase;letter-spacing:1px;
+}
+.mode-tag.outreach{color:var(--meet);border-color:rgba(125,218,125,.2);background:rgba(125,218,125,.04)}
+
+.topbar-right{display:flex;align-items:center;gap:8px}
+.imp-badge{
+  display:flex;align-items:center;gap:6px;padding:5px 10px;
+  border-radius:var(--r);background:rgba(239,68,68,.07);
+  border:1px solid rgba(239,68,68,.18);color:#f87171;font-size:10px;
+}
+.imp-dot{width:5px;height:5px;border-radius:50%;background:var(--red);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.add-btn{
+  display:flex;align-items:center;gap:5px;padding:7px 13px;
+  border-radius:var(--r);background:var(--white);border:none;color:#000;
+  font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;
+  cursor:pointer;transition:opacity .15s;white-space:nowrap;letter-spacing:.5px;
+}
+.add-btn:hover{opacity:.88}
+.add-btn.green-btn{background:var(--meet);color:#000}
+
+.content{padding:22px 24px;flex:1}
+.section{display:none}
+.section.active{display:block}
+
+/* ══════════════════════════════════
+   TASKFLOW — STREAK
+══════════════════════════════════ */
+.streak-bar{
+  display:flex;align-items:center;gap:14px;padding:14px 18px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);margin-bottom:14px;flex-wrap:wrap;
+}
+.streak-left{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.streak-flame{font-size:20px;animation:flamePulse 2s ease-in-out infinite}
+@keyframes flamePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.streak-count{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:var(--white);line-height:1}
+.streak-lbl{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.9px;font-family:'IBM Plex Mono',monospace}
+.streak-sub{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:2px}
+.streak-msg{font-size:11px;color:var(--text2);font-style:italic;padding:0 8px;border-left:2px solid var(--green);flex:1;min-width:120px;line-height:1.5}
+.streak-msg.warn{border-left-color:var(--yellow)}
+.streak-msg.cold{border-left-color:var(--text3)}
+.streak-right{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.streak-stat{text-align:center}
+.streak-stat-num{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;color:var(--white)}
+.streak-stat-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px}
+.streak-div{width:1px;height:26px;background:var(--border)}
+
+/* ══════════════════════════════════
+   TASKFLOW — STATS
+══════════════════════════════════ */
+.stats-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  margin-bottom:14px;border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;background:var(--border);
+}
+.stat-card{padding:18px 16px;background:var(--bg2);display:flex;flex-direction:column;gap:8px}
+.stat-ind{display:flex;align-items:center;gap:8px}
+.s-total .stat-ind::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--blue);flex-shrink:0}
+.s-imp   .stat-ind::before{content:'';width:14px;height:2px;border-radius:1px;background:var(--red);flex-shrink:0}
+.s-pend  .stat-ind::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--yellow);flex-shrink:0}
+.s-done  .stat-ind::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
+.stat-ind-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+.stat-num{font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600;line-height:1;color:var(--white)}
+
+/* ══════════════════════════════════
+   TASKFLOW — CARDS & TABLE
+══════════════════════════════════ */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--border)}
+.card-head h2{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;color:var(--text2);display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.8px}
+.head-pending::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--yellow);flex-shrink:0}
+.head-done::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
+.head-cal::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--blue);flex-shrink:0}
+.view-all-btn{background:none;border:none;color:var(--text3);font-size:10px;cursor:pointer;font-family:'IBM Plex Mono',monospace}
+.view-all-btn:hover{color:var(--text2)}
+.cnt{background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.2);border-radius:2px;padding:1px 6px;font-size:9px;font-weight:600;font-family:'IBM Plex Mono',monospace}
+.cnt-g{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2);border-radius:2px;padding:1px 6px;font-size:9px;font-weight:600;font-family:'IBM Plex Mono',monospace}
+.empty-box{padding:28px;text-align:center;color:var(--text3);font-size:11px;font-family:'IBM Plex Mono',monospace}
+
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.tt{width:100%;border-collapse:collapse;min-width:480px}
+table.tt thead tr{border-bottom:1px solid var(--border)}
+table.tt th{padding:8px 12px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-family:'IBM Plex Mono',monospace;background:var(--bg);white-space:nowrap}
+table.tt tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+table.tt tbody tr:last-child{border-bottom:none}
+table.tt tbody tr:hover{background:var(--bg3)}
+table.tt td{padding:10px 12px;font-size:12px;vertical-align:middle}
+.task-name{font-weight:500;margin-bottom:2px}
+.task-desc-sm{font-size:10px;color:var(--text3)}
+.person-pill{background:var(--bg3);color:var(--text2);border:1px solid var(--border2);border-radius:2px;padding:2px 6px;font-size:10px;white-space:nowrap;display:inline-block;font-family:'IBM Plex Mono',monospace}
+.p-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--text2);font-family:'IBM Plex Mono',monospace}
+.p-badge::before{content:'';flex-shrink:0}
+.p-imp::before{width:10px;height:2px;border-radius:1px;background:var(--red)}
+.p-med::before{width:5px;height:5px;border-radius:50%;background:var(--yellow)}
+.p-low::before{width:5px;height:5px;border-radius:50%;background:var(--text3)}
+.s-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--text2);font-family:'IBM Plex Mono',monospace}
+.s-badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.s-planned::before{background:var(--blue)}
+.s-progress::before{background:var(--yellow)}
+.s-done-s::before{background:var(--green)}
+.date-td{font-size:10px;color:var(--text2);font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+.act-btn{background:none;border:1px solid var(--border);border-radius:var(--r);padding:3px 8px;cursor:pointer;font-size:10px;transition:all .1s;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+.act-btn:hover{border-color:var(--border2);color:var(--text2);background:var(--bg3)}
+.done-text{text-decoration:line-through;color:var(--text3)}
+
+/* preview list */
+.prev-item{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);transition:background .1s;gap:8px}
+.prev-item:last-child{border-bottom:none}
+.prev-item:hover{background:var(--bg3)}
+.prev-left{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.prev-dot{flex-shrink:0}
+.prev-dot.dot-red{width:10px;height:2px;border-radius:1px;background:var(--red)}
+.prev-dot.dot-yellow{width:5px;height:5px;border-radius:50%;background:var(--yellow)}
+.prev-dot.dot-green{width:5px;height:5px;border-radius:50%;background:var(--green)}
+.prev-dot.dot-gray{width:5px;height:5px;border-radius:50%;background:var(--text3)}
+.prev-title{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prev-right{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.completed-card{border-color:rgba(34,197,94,.1)}
+.completed-card .card-head{background:rgba(34,197,94,.02)}
+
+/* ══ TASK CALENDAR ══ */
+.cal-wrap{padding:16px}
+.cal-legend{display:flex;gap:12px;flex-wrap:wrap}
+.leg{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+.leg-dot{width:5px;height:5px;border-radius:50%}
+.leg-line{width:10px;height:2px;border-radius:1px}
+.heatmap-wrap{padding:14px 16px;border-top:1px solid var(--border)}
+.heatmap-title{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;font-family:'IBM Plex Mono',monospace}
+.heatmap-grid{display:flex;gap:3px;flex-wrap:wrap}
+.hm-cell{width:11px;height:11px;border-radius:2px;background:var(--bg3);cursor:default;position:relative}
+.hm-cell:hover::after{content:attr(data-tip);position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:#000;color:var(--text);font-size:9px;padding:3px 7px;border-radius:2px;white-space:nowrap;z-index:20;pointer-events:none;font-family:'IBM Plex Mono',monospace}
+.hm-cell.hm-1{background:rgba(34,197,94,.25)}
+.hm-cell.hm-2{background:rgba(34,197,94,.5)}
+.hm-cell.hm-3{background:rgba(34,197,94,.75)}
+.hm-cell.hm-4{background:rgba(34,197,94,1)}
+.hm-cell.hm-today{outline:1px solid var(--white);outline-offset:1px}
+.heatmap-legend{display:flex;align-items:center;gap:4px;margin-top:6px;font-size:9px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+.hm-leg-cell{width:9px;height:9px;border-radius:2px}
+
+.fc{--fc-border-color:var(--border);--fc-button-bg-color:var(--bg3);--fc-button-border-color:var(--border2);--fc-button-text-color:var(--text2);--fc-button-hover-bg-color:var(--border2);--fc-button-active-bg-color:#2a2a2a;--fc-today-bg-color:rgba(255,255,255,.02);--fc-page-bg-color:transparent;--fc-neutral-bg-color:transparent;color:var(--text);font-family:'IBM Plex Sans',sans-serif}
+.fc .fc-toolbar-title{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:var(--text2)}
+.fc .fc-col-header-cell-cushion{color:var(--text3);font-size:9px;text-transform:uppercase;letter-spacing:.8px}
+.fc .fc-daygrid-day-number{color:var(--text3);font-size:10px;font-family:'IBM Plex Mono',monospace}
+.fc .fc-event{border-radius:2px;font-size:9px;font-weight:500;cursor:pointer;padding:1px 4px}
+.fc .fc-button{border-radius:var(--r)!important;font-family:'IBM Plex Mono',monospace!important;font-size:9px!important}
+.fc-day-has-activity{position:relative}
+.fc-day-has-activity .fc-daygrid-day-frame::before{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--green);pointer-events:none;z-index:5}
+
+/* ══════════════════════════════════
+   TASK MODAL
+══════════════════════════════════ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.show{display:flex}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:460px;max-height:90vh;overflow-y:auto;animation:fadeUp .2s ease}
+.modal-inner{padding:24px}
+.modal-title{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;margin-bottom:18px;color:var(--white);text-transform:uppercase;letter-spacing:.5px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.form-col-2{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:9px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-family:'IBM Plex Mono',monospace}
+.form-group input,.form-group select,.form-group textarea{background:var(--bg);border:1px solid var(--border2);border-radius:var(--r);padding:9px 11px;color:var(--text);font-size:12px;outline:none;transition:border-color .15s;resize:none;width:100%}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--border3)}
+.form-group select option{background:#111}
+.form-group input::placeholder,.form-group textarea::placeholder{color:var(--text3)}
+.form-actions{display:flex;gap:8px;justify-content:flex-end}
+.btn-cancel{padding:7px 14px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11px;cursor:pointer;font-family:'IBM Plex Mono',monospace}
+.btn-cancel:hover{background:var(--bg3)}
+.btn-save{padding:7px 16px;border-radius:var(--r);background:var(--white);border:none;color:#000;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;cursor:pointer;transition:opacity .15s}
+.btn-save:hover{opacity:.88}
+
+/* ══════════════════════════════════
+   OUTREACH OS STYLES
+══════════════════════════════════ */
+.out-section{--meet:#7dda7d;--meet-bg:rgba(125,218,125,.06);--meet-border:rgba(125,218,125,.2)}
+
+/* Outreach time bar */
+.time-bar{display:flex;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+.time-btn{background:transparent;border:none;border-right:1px solid var(--border);color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;cursor:pointer;transition:all .15s;white-space:nowrap;flex:1}
+.time-btn:last-child{border-right:none}
+.time-btn.active,.time-btn:hover{background:var(--white);color:#000}
+.period-lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--text3);margin-bottom:18px;padding:7px 0;border-bottom:1px solid var(--border)}
+.period-lbl strong{color:var(--text)}
+
+/* Out stats */
+.out-stats{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1px}
+.out-stat{background:var(--bg2);padding:20px 16px;transition:background .15s}
+.out-stat:hover{background:var(--bg3)}
+.out-stat-label{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.out-stat-num{font-family:'Bebas Neue',sans-serif;font-size:38px;line-height:1;color:var(--white);margin-bottom:2px}
+.out-stat-sub{font-size:9px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+
+/* Section title */
+.sec-title{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin:28px 0 14px;display:flex;align-items:center;gap:14px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.sec-title:first-child{margin-top:0}
+
+/* Charts */
+.charts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1px}
+.chart-box{background:var(--bg2);padding:22px 20px;display:flex;flex-direction:column;gap:14px}
+.chart-box-title{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3)}
+.chart-canvas-wrap{position:relative;height:180px}
+
+/* Channels */
+.channels-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1px}
+.ch-card{background:var(--bg2);padding:18px 14px;transition:background .15s}
+.ch-card:hover{background:var(--bg3)}
+.ch-label{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.ch-count{font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1;margin-bottom:2px}
+.ch-resp{font-size:9px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:10px}
+.ch-bar{height:2px;background:var(--border);width:100%}
+.ch-bar-fill{height:100%;background:var(--white);transition:width .5s ease}
+
+/* Rate rows */
+.rate-row{display:flex;align-items:center;gap:14px;background:var(--bg2);padding:14px 22px;margin-top:1px}
+.rate-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);min-width:100px}
+.rate-bar-outer{flex:1;height:2px;background:var(--border3)}
+.rate-bar-inner{height:100%;background:var(--white);transition:width .5s ease}
+.rate-pct{font-family:'Bebas Neue',sans-serif;font-size:18px;min-width:44px;text-align:right}
+
+/* Outreach upcoming strip */
+.upcoming-strip{background:rgba(125,218,125,.05);border:1px solid rgba(125,218,125,.15);padding:13px 18px;margin-bottom:14px;display:flex;align-items:center;gap:16px;overflow-x:auto;scrollbar-width:none;border-radius:var(--r)}
+.upcoming-strip::-webkit-scrollbar{display:none}
+.upcoming-strip-label{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--meet);flex-shrink:0}
+.upcoming-pill{flex-shrink:0;background:rgba(0,0,0,.3);border:1px solid rgba(125,218,125,.15);padding:7px 12px;cursor:pointer;border-radius:var(--r);transition:background .2s}
+.upcoming-pill:hover{background:rgba(125,218,125,.08)}
+.upcoming-pill-title{font-size:11px;font-weight:500;color:var(--white);margin-bottom:1px}
+.upcoming-pill-time{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--meet);letter-spacing:.5px}
+
+/* Entry panel / form */
+.entry-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-top:1px}
+.panel-title{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:18px;color:var(--white)}
+.form-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;margin-bottom:10px;align-items:end}
+.form-row-bottom{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
+.out-fg{display:flex;flex-direction:column;gap:5px}
+.out-fg label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3)}
+.out-fg input,.out-fg select,.out-fg textarea{background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:9px 11px;outline:none;transition:border .15s;width:100%;border-radius:var(--r);resize:vertical}
+.out-fg input:focus,.out-fg select:focus,.out-fg textarea:focus{border-color:var(--border3)}
+.out-fg select option{background:#111}
+.btn-log{background:var(--white);color:#000;border:none;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:9px 20px;cursor:pointer;transition:opacity .2s;white-space:nowrap;height:40px;border-radius:var(--r)}
+.btn-log:hover{opacity:.85}
+
+/* Log table */
+.log-table{width:100%;min-width:520px;border-collapse:collapse}
+.log-table thead tr{background:var(--bg3)}
+.log-table th{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.log-table td{padding:10px 12px;font-size:12px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+.log-table tbody tr{background:var(--bg2);transition:background .1s}
+.log-table tbody tr:hover{background:var(--bg3)}
+.badge{display:inline-block;padding:2px 7px;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;border:1px solid #444;color:#888;white-space:nowrap;border-radius:2px}
+.resp-badge{padding:2px 7px;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;display:inline-block;border-radius:2px}
+.resp-yes{background:var(--white);color:#000}
+.resp-no{border:1px solid #2a2a2a;color:#555}
+.resp-pending{border:1px solid #333;color:#666}
+.btn-del{background:transparent;border:1px solid #222;color:#444;font-family:'IBM Plex Mono',monospace;font-size:8px;padding:3px 9px;cursor:pointer;transition:all .15s;border-radius:2px}
+.btn-del:hover{border-color:#900;color:#c00}
+.out-empty{text-align:center;padding:48px 20px;color:var(--text3);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;line-height:2}
+
+/* Meetings */
+.meet-layout{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.meet-form-panel{background:var(--bg2);padding:28px 24px}
+.meet-form-title{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;color:var(--white)}
+.meet-form-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text3);text-transform:uppercase;margin-bottom:24px}
+.mfrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.mfrow.single{grid-template-columns:1fr}
+.mfrow.triple{grid-template-columns:1fr 1fr 1fr}
+.meet-link-grp{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.meet-link-grp label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--meet)}
+.meet-link-wrap{display:flex}
+.meet-link-icon{background:rgba(125,218,125,.06);border:1px solid rgba(125,218,125,.2);border-right:none;padding:9px 12px;display:flex;align-items:center;font-size:14px}
+.meet-link-input{flex:1;background:rgba(125,218,125,.04);border:1px solid rgba(125,218,125,.2);color:var(--meet);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:9px 11px;outline:none;letter-spacing:.5px}
+.meet-link-input::placeholder{color:rgba(125,218,125,.25)}
+.meet-link-input:focus{border-color:var(--meet)}
+.meet-gen-btn{background:rgba(125,218,125,.06);border:1px solid rgba(125,218,125,.2);color:var(--meet);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:9px 12px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.meet-gen-btn:hover{background:rgba(125,218,125,.12)}
+.btn-schedule{background:var(--white);color:#000;border:none;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:11px 24px;cursor:pointer;transition:opacity .2s;width:100%;margin-top:6px;border-radius:var(--r)}
+.btn-schedule:hover{opacity:.85}
+
+.meet-list-panel{background:var(--bg2);display:flex;flex-direction:column;max-height:680px}
+.meet-list-hdr{padding:20px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.meet-list-title{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase}
+.meet-filter{display:flex;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.meet-filter-btn{background:transparent;border:none;border-right:1px solid var(--border);color:var(--text3);font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;padding:6px 12px;cursor:pointer;transition:all .15s}
+.meet-filter-btn:last-child{border-right:none}
+.meet-filter-btn.active{background:var(--white);color:#000}
+.meet-items{flex:1;overflow-y:auto}
+.meet-item{padding:16px 22px;border-bottom:1px solid var(--border);transition:background .1s;animation:fadeUp .3s ease both}
+.meet-item:hover{background:var(--bg3)}
+.meet-item.past-meet{opacity:.5}
+.meet-item-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px;gap:10px}
+.meet-item-title{font-size:13px;font-weight:500;color:var(--white)}
+.meet-item-with{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);margin-bottom:5px;letter-spacing:.5px}
+.meet-time-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text2);letter-spacing:.5px}
+.meet-countdown{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:2px 7px;border:1px solid;border-radius:2px}
+.meet-countdown.upcoming{color:var(--meet);border-color:rgba(125,218,125,.25)}
+.meet-countdown.today{color:#fff;background:rgba(125,218,125,.12);border-color:var(--meet);animation:pulse 2s infinite}
+.meet-countdown.past{color:var(--text3);border-color:#222}
+.meet-link-pill{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--meet);text-decoration:none;border:1px solid rgba(125,218,125,.2);background:rgba(125,218,125,.04);padding:3px 10px;margin-top:6px;transition:all .2s;cursor:pointer;border-radius:2px}
+.meet-link-pill:hover{background:rgba(125,218,125,.1)}
+.meet-notes{font-size:11px;color:var(--text3);margin-top:5px;font-style:italic}
+.meet-actions{display:flex;align-items:center;gap:7px;margin-top:8px}
+.btn-meet-del{background:transparent;border:1px solid #222;color:#444;font-family:'IBM Plex Mono',monospace;font-size:8px;padding:3px 9px;cursor:pointer;transition:all .15s;border-radius:2px}
+.btn-meet-del:hover{border-color:#900;color:#c00}
+.btn-copy-link{background:transparent;border:1px solid rgba(125,218,125,.2);color:var(--meet);font-family:'IBM Plex Mono',monospace;font-size:8px;padding:3px 9px;cursor:pointer;transition:all .15s;border-radius:2px}
+.btn-copy-link:hover{background:rgba(125,218,125,.06)}
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.status-today{background:var(--meet);box-shadow:0 0 6px var(--meet)}
+.status-upcoming{background:var(--text3)}
+.status-past{background:#222}
+.meet-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;color:var(--text3);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;text-align:center;gap:12px;flex:1}
+.meet-empty-icon{font-size:28px;opacity:.15}
+
+/* Outreach Calendar */
+.out-cal-layout{display:grid;grid-template-columns:1fr 320px;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;min-height:560px}
+.out-cal-panel{background:var(--bg2)}
+.out-cal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid var(--border)}
+.out-cal-month{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px}
+.out-cal-nav{display:flex;gap:6px}
+.out-cal-nav-btn{background:transparent;border:1px solid var(--border);color:var(--text3);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;padding:6px 12px;cursor:pointer;transition:all .2s;border-radius:var(--r)}
+.out-cal-nav-btn:hover{background:var(--white);color:#000;border-color:var(--white)}
+.out-cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border)}
+.out-cal-wd{padding:9px 0;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3)}
+.out-cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.out-cal-day{min-height:80px;padding:9px 10px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;position:relative;overflow:hidden}
+.out-cal-day:nth-child(7n){border-right:none}
+.out-cal-day:hover{background:var(--bg3)}
+.out-cal-day.other-month{opacity:.2}
+.out-cal-day.today-day .out-cal-num{background:var(--white);color:#000;border-radius:50%}
+.out-cal-day.selected-day{background:var(--bg3);outline:1px solid rgba(255,255,255,.1)}
+.out-cal-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text2);margin-bottom:5px;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+.out-cal-dots{display:flex;flex-wrap:wrap;gap:2px;margin-top:1px}
+.out-cal-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.out-cal-dot-yes{background:var(--white)}
+.out-cal-dot-no{background:var(--border3)}
+.out-cal-dot-pending{background:var(--text3)}
+.out-cal-dot-meet{background:var(--meet);border-radius:1px}
+.out-cal-count{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--text3);margin-top:1px}
+.out-cal-day:hover .out-cal-count,.out-cal-day.selected-day .out-cal-count{color:var(--white)}
+.out-cal-meet-badge{font-family:'IBM Plex Mono',monospace;font-size:7px;letter-spacing:.8px;color:var(--meet);margin-top:2px;display:block}
+
+.out-cal-detail{background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column}
+.out-cal-detail-hdr{padding:20px 18px 14px;border-bottom:1px solid var(--border)}
+.out-cal-detail-date{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1.5px;margin-bottom:3px}
+.out-cal-detail-count{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase}
+.out-cal-entry-list{flex:1;overflow-y:auto;padding:6px 0}
+.out-cal-entry-item{padding:12px 18px;border-bottom:1px solid var(--border);transition:background .1s;animation:slideIn .2s ease both}
+.out-cal-entry-item:hover{background:var(--bg3)}
+.out-cal-entry-name{font-size:12px;color:var(--white);margin-bottom:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.out-cal-entry-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.out-cal-entry-del{margin-left:auto;background:transparent;border:none;color:var(--text3);font-family:'IBM Plex Mono',monospace;font-size:9px;cursor:pointer;padding:2px 5px;transition:color .1s}
+.out-cal-entry-del:hover{color:#c00}
+.out-cal-empty{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;text-align:center;padding:32px 18px}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--white);color:#000;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;padding:9px 20px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;text-transform:uppercase;border-radius:var(--r)}
+.toast.show{opacity:1}
+
+/* ══ MOBILE NAV ══ */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);z-index:200;padding-bottom:env(safe-area-inset-bottom)}
+.mobile-nav-inner{display:flex;justify-content:space-around}
+.mob-nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 8px;background:none;border:none;color:var(--text3);font-size:8px;font-family:'IBM Plex Mono',monospace;cursor:pointer;flex:1;text-transform:uppercase;letter-spacing:.5px;transition:color .15s}
+.mob-nav-btn.active{color:var(--white)}
+.mob-nav-btn svg{width:17px;height:17px}
+.mob-nav-btn.out-mob.active{color:var(--meet)}
+.fab{display:none;position:fixed;bottom:68px;right:16px;width:46px;height:46px;border-radius:50%;background:var(--white);border:none;color:#000;font-size:20px;cursor:pointer;z-index:250;box-shadow:0 4px 18px rgba(0,0,0,.6);align-items:center;justify-content:center;line-height:1}
+
+@keyframes slideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:1100px){
+  .out-stats{grid-template-columns:repeat(3,1fr)}
+  .channels-grid,.charts-row{grid-template-columns:1fr 1fr}
+}
+@media(max-width:900px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .out-stats{grid-template-columns:repeat(3,1fr)}
+  .meet-layout{grid-template-columns:1fr}
+  .out-cal-layout{grid-template-columns:1fr}
+  .out-cal-detail{border-left:none;border-top:1px solid var(--border)}
+  .form-row{grid-template-columns:1fr 1fr}
+}
+@media(max-width:680px){
+  :root{--sidebar:0px}
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(calc(var(--sidebar, 230px) + 230px))}
+  .sidebar-overlay.show{display:block}
+  .main{margin-left:0}
+  .hamburger{display:flex}
+  .mobile-nav{display:block}
+  .fab{display:flex}
+  .content{padding:14px 14px 72px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .out-stats{grid-template-columns:repeat(2,1fr)}
+  .streak-msg{display:none}
+  .streak-right{gap:8px}
+  .stat-num{font-size:22px}
+  .form-grid{grid-template-columns:1fr}
+  .form-col-2{grid-column:1}
+  .form-row{grid-template-columns:1fr}
+  .form-row-bottom{grid-template-columns:1fr}
+  .btn-log{width:100%;height:auto;padding:11px}
+  .charts-row{grid-template-columns:1fr}
+  .channels-grid{grid-template-columns:repeat(2,1fr)}
+  .meet-layout{grid-template-columns:1fr}
+  .mfrow{grid-template-columns:1fr}
+  .mfrow.triple{grid-template-columns:1fr 1fr}
+  .login-left{display:none}
+  .login-right{width:100%;padding:36px 28px}
+  .out-cal-layout{grid-template-columns:1fr}
+  .topbar{padding:0 14px}
+  .add-btn{padding:6px 10px;font-size:10px}
+}
+@media(max-width:380px){
+  .streak-right{display:none}
+  .out-stats{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════
+     LOGIN PAGE
+══════════════════════════ -->
+<div id="login-page">
+  <div class="login-left">
+    <div class="login-wordmark">
+      <div class="login-wordmark-dot">⚡</div>
+      <div class="login-wordmark-text">TaskFlow</div>
+    </div>
+
+    <div class="login-headline">
+      YOUR<br>WORK.<br><span>UNIFIED.</span>
+    </div>
+    <p class="login-sub">Tasks, outreach, and meetings — one workspace. Built for teams that execute.</p>
+
+    <div class="login-features">
+      <div class="login-feat">
+        <div class="login-feat-dot" style="background:var(--blue)"></div>
+        Task management with streaks &amp; calendar
+      </div>
+      <div class="login-feat">
+        <div class="login-feat-dot" style="background:var(--meet)"></div>
+        Outreach OS — track every contact &amp; meeting
+      </div>
+      <div class="login-feat">
+        <div class="login-feat-dot" style="background:var(--yellow)"></div>
+        Analytics dashboard with response rates
+      </div>
+      <div class="login-feat">
+        <div class="login-feat-dot" style="background:var(--green)"></div>
+        Shared workspace for your entire team
+      </div>
+    </div>
+  </div>
+
+  <div class="login-right">
+    <div class="login-card">
+      <div class="lc-label">Workspace Login</div>
+      <h1 class="lc-title">Sign In</h1>
+      <p class="lc-sub">Access your unified workspace</p>
+
+      <div class="login-error" id="login-error"></div>
+
+      <div class="lfield">
+        <label>Email</label>
+        <input type="email" id="inp-email" placeholder="you@dev.com" autocomplete="email"/>
+      </div>
+      <div class="lfield">
+        <label>Password</label>
+        <input type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <button class="login-btn" id="login-btn" onclick="doLogin()">Sign In →</button>
+      <div class="login-attempts" id="login-attempts"></div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- ══════════════════════════
+     APP
+══════════════════════════ -->
+<div id="app-page">
+  <div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sb-brand">
+        <div class="sb-brand-dot">⚡</div>
+        <div class="sb-brand-name">TaskFlow</div>
+      </div>
+
+      <!-- App switcher -->
+      <div class="sb-switcher">
+        <button class="sb-switch-btn active" id="sw-tasks" onclick="switchApp('tasks')">Tasks</button>
+        <button class="sb-switch-btn" id="sw-outreach" onclick="switchApp('outreach')">Outreach</button>
+      </div>
+
+      <div class="sb-nav" id="sb-nav">
+        <!-- Task nav -->
+        <div id="task-nav">
+          <div class="sb-section-label">Task Manager</div>
+          <button class="nav-btn active" data-sec="dashboard" onclick="switchSection('dashboard',this);closeSidebar()">
+            <span class="nb-icon">▣</span> Dashboard
+          </button>
+          <button class="nav-btn" data-sec="tasks" onclick="switchSection('tasks',this);closeSidebar()">
+            <span class="nb-icon">≡</span> Task List
+          </button>
+          <button class="nav-btn" data-sec="calendar" onclick="switchSection('calendar',this);closeSidebar()">
+            <span class="nb-icon">◫</span> Calendar
+          </button>
+        </div>
+
+        <!-- Outreach nav (hidden by default) -->
+        <div id="outreach-nav" style="display:none">
+          <div class="sb-section-label">Outreach OS</div>
+          <button class="nav-btn out-nav active" data-out="out-dashboard" onclick="switchOutPage('out-dashboard',this);closeSidebar()">
+            <span class="nb-icon" style="color:var(--meet)">◉</span> Dashboard
+          </button>
+          <button class="nav-btn out-nav" data-out="out-log" onclick="switchOutPage('out-log',this);closeSidebar()">
+            <span class="nb-icon" style="color:var(--meet)">+</span> Log Entry
+          </button>
+          <button class="nav-btn out-nav" data-out="out-records" onclick="switchOutPage('out-records',this);closeSidebar()">
+            <span class="nb-icon" style="color:var(--meet)">⊟</span> All Records
+          </button>
+          <button class="nav-btn out-nav" data-out="out-calendar" onclick="switchOutPage('out-calendar',this);closeSidebar()">
+            <span class="nb-icon" style="color:var(--meet)">◫</span> Calendar
+          </button>
+          <button class="nav-btn out-nav" data-out="out-meetings" onclick="switchOutPage('out-meetings',this);closeSidebar()">
+            <span class="nb-icon" style="color:var(--meet)">◉</span> Meetings
+          </button>
+        </div>
+      </div>
+
+      <!-- Streak pill (tasks mode only) -->
+      <div class="sb-streak" id="sb-streak-wrap">
+        <div class="sb-streak-pill">
+          <span id="sb-streak-flame" style="font-size:14px">🔥</span>
+          <div>
+            <div class="sb-streak-num" id="sb-streak-num">0</div>
+            <div class="sb-streak-lbl">day streak</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sb-user">
+        <div class="sb-avatar" id="sb-avatar"></div>
+        <div>
+          <div class="sb-uname" id="sb-uname"></div>
+          <div class="sb-urole" id="sb-urole"></div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">↩ Logout</button>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger" onclick="openSidebar()" aria-label="Menu">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+              <line x1="3" y1="6" x2="17" y2="6"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="14" x2="17" y2="14"/>
+            </svg>
+          </button>
+          <div class="page-title" id="page-title">Dashboard</div>
+          <div class="mode-tag" id="mode-tag">Tasks</div>
+        </div>
+        <div class="topbar-right">
+          <div class="imp-badge" id="imp-badge" style="display:none">
+            <div class="imp-dot"></div>
+            <span id="imp-count">0</span>
+          </div>
+          <button class="add-btn" id="main-add-btn" onclick="openModal()">+ New Task</button>
+        </div>
+      </header>
+
+      <div class="content">
+
+        <!-- ═══ TASK SECTIONS ═══ -->
+        <div class="section active" id="sec-dashboard">
+          <div class="streak-bar">
+            <div class="streak-left">
+              <div class="streak-flame">🔥</div>
+              <div>
+                <div class="streak-count" id="streak-count">0</div>
+                <div class="streak-lbl">Day Streak</div>
+                <div class="streak-sub" id="streak-sub">Add a task to start!</div>
+              </div>
+            </div>
+            <div class="streak-msg cold" id="streak-msg">Log your first task to begin.</div>
+            <div class="streak-right">
+              <div class="streak-stat"><div class="streak-stat-num" id="streak-best">0</div><div class="streak-stat-lbl">Best</div></div>
+              <div class="streak-div"></div>
+              <div class="streak-stat"><div class="streak-stat-num" id="streak-active">0</div><div class="streak-stat-lbl">Active Days</div></div>
+              <div class="streak-div"></div>
+              <div class="streak-stat"><div class="streak-stat-num" id="streak-today">0</div><div class="streak-stat-lbl">Today</div></div>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card s-total"><div class="stat-ind"><span class="stat-ind-lbl">Total Tasks</span></div><div class="stat-num" id="st-total">0</div></div>
+            <div class="stat-card s-imp"><div class="stat-ind"><span class="stat-ind-lbl">Important</span></div><div class="stat-num" id="st-imp">0</div></div>
+            <div class="stat-card s-pend"><div class="stat-ind"><span class="stat-ind-lbl">Pending</span></div><div class="stat-num" id="st-pend">0</div></div>
+            <div class="stat-card s-done"><div class="stat-ind"><span class="stat-ind-lbl">Completed</span></div><div class="stat-num" id="st-done">0</div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h2 class="head-pending">Pending Tasks</h2>
+              <button class="view-all-btn" onclick="switchSection('tasks',document.querySelector('[data-sec=tasks]'))">View All →</button>
+            </div>
+            <div id="dash-pending"></div>
+          </div>
+          <div class="card completed-card">
+            <div class="card-head">
+              <h2 class="head-done">Completed Tasks</h2>
+              <span class="cnt-g" id="dash-done-cnt">0</span>
+            </div>
+            <div id="dash-done"></div>
+          </div>
+        </div>
+
+        <div class="section" id="sec-tasks">
+          <div class="card">
+            <div class="card-head"><h2 class="head-pending">Pending Tasks <span class="cnt" id="pend-cnt">0</span></h2></div>
+            <div class="tbl-wrap">
+              <table class="tt"><thead><tr><th>Task</th><th>Person</th><th>Date</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody id="tbl-pending"></tbody></table>
+              <div class="empty-box" id="pend-empty" style="display:none">No pending tasks!</div>
+            </div>
+          </div>
+          <div class="card completed-card">
+            <div class="card-head"><h2 class="head-done">Completed <span class="cnt-g" id="done-cnt">0</span></h2></div>
+            <div class="tbl-wrap">
+              <table class="tt"><thead><tr><th>Task</th><th>Person</th><th>Date</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody id="tbl-done"></tbody></table>
+              <div class="empty-box" id="done-empty" style="display:none">No completed tasks yet</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section" id="sec-calendar">
+          <div class="card">
+            <div class="card-head">
+              <h2 class="head-cal">Task Calendar</h2>
+              <div class="cal-legend">
+                <div class="leg"><span class="leg-line" style="background:var(--red)"></span>Important</div>
+                <div class="leg"><span class="leg-dot" style="background:var(--yellow)"></span>Medium</div>
+                <div class="leg"><span class="leg-dot" style="background:var(--text3)"></span>Low</div>
+              </div>
+            </div>
+            <div class="heatmap-wrap">
+              <div class="heatmap-title">Activity — last 16 weeks</div>
+              <div class="heatmap-grid" id="heatmap-grid"></div>
+              <div class="heatmap-legend">
+                <span>Less</span>
+                <div class="hm-leg-cell" style="background:var(--bg3)"></div>
+                <div class="hm-leg-cell hm-1"></div><div class="hm-leg-cell hm-2"></div>
+                <div class="hm-leg-cell hm-3"></div><div class="hm-leg-cell hm-4"></div>
+                <span>More</span>
+              </div>
+            </div>
+            <div class="cal-wrap"><div id="fc-calendar"></div></div>
+          </div>
+        </div>
+
+        <!-- ═══ OUTREACH SECTIONS ═══ -->
+        <div class="section" id="sec-out-dashboard">
+          <div id="out-upcoming-strip" style="display:none" class="upcoming-strip">
+            <div class="upcoming-strip-label">◉ Upcoming Meetings</div>
+            <div id="out-upcoming-pills"></div>
+          </div>
+          <div class="time-bar">
+            <button class="time-btn" data-period="day" onclick="setPeriod('day')">Day</button>
+            <button class="time-btn active" data-period="week" onclick="setPeriod('week')">Week</button>
+            <button class="time-btn" data-period="month" onclick="setPeriod('month')">Month</button>
+            <button class="time-btn" data-period="year" onclick="setPeriod('year')">Year</button>
+            <button class="time-btn" data-period="all" onclick="setPeriod('all')">All Time</button>
+          </div>
+          <div class="period-lbl" id="periodLabel"></div>
+          <div class="out-stats" id="out-stats-grid">
+            <div class="out-stat"><div class="out-stat-label">Total Reached</div><div class="out-stat-num" id="statTotal">0</div><div class="out-stat-sub">clients contacted</div></div>
+            <div class="out-stat"><div class="out-stat-label">Responded</div><div class="out-stat-num" id="statResponded">0</div><div class="out-stat-sub">replied back</div></div>
+            <div class="out-stat"><div class="out-stat-label">Response Rate</div><div class="out-stat-num" id="statRate">0%</div><div class="out-stat-sub">of total reached</div></div>
+            <div class="out-stat"><div class="out-stat-label">Meetings</div><div class="out-stat-num" id="statMeetings">0</div><div class="out-stat-sub">scheduled</div></div>
+            <div class="out-stat"><div class="out-stat-label">Calls Made</div><div class="out-stat-num" id="statCalls">0</div><div class="out-stat-sub">phone/video</div></div>
+            <div class="out-stat"><div class="out-stat-label">Pending</div><div class="out-stat-num" id="statPending">0</div><div class="out-stat-sub">awaiting reply</div></div>
+          </div>
+          <div class="sec-title">Analytics</div>
+          <div class="charts-row">
+            <div class="chart-box"><div class="chart-box-title">Outreach Over Time</div><div class="chart-canvas-wrap"><canvas id="chartTimeline"></canvas></div></div>
+            <div class="chart-box"><div class="chart-box-title">Channel Distribution</div><div class="chart-canvas-wrap"><canvas id="chartChannel"></canvas></div></div>
+            <div class="chart-box"><div class="chart-box-title">Response Breakdown</div><div class="chart-canvas-wrap"><canvas id="chartResponse"></canvas></div></div>
+          </div>
+          <div class="sec-title">Channel Breakdown</div>
+          <div class="channels-grid" id="channelGrid"></div>
+          <div class="sec-title">Response Rate by Channel</div>
+          <div id="rateRows"></div>
+        </div>
+
+        <div class="section" id="sec-out-log">
+          <div class="sec-title" style="margin-top:0">Log New Contact</div>
+          <div class="entry-panel">
+            <div class="panel-title">New Entry</div>
+            <div class="form-row">
+              <div class="out-fg" style="grid-column:span 1"><label>Client Name / Company</label><input type="text" id="inputName" placeholder="e.g. John Doe — Acme Corp"/></div>
+              <div class="out-fg"><label>Channel</label><select id="inputChannel"><option>LinkedIn</option><option>Cold Mail</option><option>Social Media</option><option>Call</option><option>Meeting</option></select></div>
+              <div class="out-fg"><label>Response</label><select id="inputResponse"><option>Pending</option><option value="Yes">Yes — Responded</option><option value="No">No — No Reply</option></select></div>
+              <div class="out-fg"><label>Date</label><input type="date" id="inputDate"/></div>
+            </div>
+            <div class="form-row-bottom">
+              <div class="out-fg"><label>Notes (optional)</label><input type="text" id="inputNotes" placeholder="Brief note..."/></div>
+              <button class="btn-log" onclick="addEntry()">+ Log Entry</button>
+            </div>
+          </div>
+          <div class="sec-title">Recent Entries</div>
+          <div class="tbl-wrap"><table class="log-table"><thead><tr><th>#</th><th>Client / Company</th><th>Channel</th><th>Response</th><th>Date</th><th>Notes</th><th></th></tr></thead><tbody id="recentLogBody"></tbody></table></div>
+          <div id="recentEmptyState" class="out-empty">No entries yet<br>Log your first contact above</div>
+        </div>
+
+        <div class="section" id="sec-out-records">
+          <div class="time-bar">
+            <button class="time-btn" data-period2="day" onclick="setPeriod2('day')">Day</button>
+            <button class="time-btn active" data-period2="week" onclick="setPeriod2('week')">Week</button>
+            <button class="time-btn" data-period2="month" onclick="setPeriod2('month')">Month</button>
+            <button class="time-btn" data-period2="year" onclick="setPeriod2('year')">Year</button>
+            <button class="time-btn" data-period2="all" onclick="setPeriod2('all')">All Time</button>
+          </div>
+          <div class="period-lbl" id="periodLabel2"></div>
+          <div class="tbl-wrap"><table class="log-table"><thead><tr><th>#</th><th>Client / Company</th><th>Channel</th><th>Response</th><th>Date</th><th>Notes</th><th></th></tr></thead><tbody id="allLogBody"></tbody></table></div>
+          <div id="allEmptyState" class="out-empty">No records found for this period</div>
+        </div>
+
+        <div class="section" id="sec-out-calendar">
+          <div class="out-cal-layout">
+            <div class="out-cal-panel">
+              <div class="out-cal-header">
+                <div class="out-cal-month" id="outCalMonth"></div>
+                <div class="out-cal-nav">
+                  <button class="out-cal-nav-btn" onclick="outCalNav(-1)">← Prev</button>
+                  <button class="out-cal-nav-btn" onclick="outCalToday()">Today</button>
+                  <button class="out-cal-nav-btn" onclick="outCalNav(1)">Next →</button>
+                </div>
+              </div>
+              <div class="out-cal-weekdays">
+                <div class="out-cal-wd">Sun</div><div class="out-cal-wd">Mon</div><div class="out-cal-wd">Tue</div>
+                <div class="out-cal-wd">Wed</div><div class="out-cal-wd">Thu</div><div class="out-cal-wd">Fri</div><div class="out-cal-wd">Sat</div>
+              </div>
+              <div class="out-cal-grid" id="outCalGrid"></div>
+            </div>
+            <div class="out-cal-detail" id="outCalDetail">
+              <div class="out-cal-detail-hdr">
+                <div class="out-cal-detail-date" id="outCalDetailDate">Select a Day</div>
+                <div class="out-cal-detail-count" id="outCalDetailCount">Click any date</div>
+              </div>
+              <div class="out-cal-empty" id="outCalDetailEmpty"><div style="font-size:24px;opacity:.2">◻</div><div>No day selected</div></div>
+              <div class="out-cal-entry-list" id="outCalEntryList" style="display:none"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section" id="sec-out-meetings">
+          <div class="meet-layout">
+            <div class="meet-form-panel">
+              <div class="meet-form-title">Schedule Meeting</div>
+              <div class="meet-form-sub">Create a new meeting</div>
+              <div class="mfrow single"><div class="out-fg"><label>Meeting Title</label><input type="text" id="mTitle" placeholder="e.g. Product Demo with Acme"/></div></div>
+              <div class="mfrow single"><div class="out-fg"><label>Client / Attendee</label><input type="text" id="mWith" placeholder="e.g. John Doe — Acme Corp"/></div></div>
+              <div class="mfrow triple">
+                <div class="out-fg"><label>Date</label><input type="date" id="mDate"/></div>
+                <div class="out-fg"><label>Start Time</label><input type="time" id="mTime"/></div>
+                <div class="out-fg"><label>Duration</label><select id="mDuration"><option value="15">15 min</option><option value="30" selected>30 min</option><option value="45">45 min</option><option value="60">1 hour</option><option value="90">1.5 hrs</option><option value="120">2 hours</option></select></div>
+              </div>
+              <div class="meet-link-grp">
+                <label>◉ Google Meet Link</label>
+                <div class="meet-link-wrap">
+                  <span class="meet-link-icon">📹</span>
+                  <input type="url" class="meet-link-input" id="mLink" placeholder="https://meet.google.com/xxx-xxxx-xxx"/>
+                  <button class="meet-gen-btn" onclick="generateMeetLink()">Gen</button>
+                </div>
+              </div>
+              <div class="mfrow single"><div class="out-fg"><label>Agenda / Notes</label><textarea id="mNotes" rows="3" placeholder="Key points to discuss..."></textarea></div></div>
+              <div class="mfrow">
+                <div class="out-fg"><label>Channel</label><select id="mChannel"><option>LinkedIn</option><option>Cold Mail</option><option>Social Media</option><option>Call</option><option>Referral</option><option>Other</option></select></div>
+                <div class="out-fg"><label>Status</label><select id="mStatus"><option>Scheduled</option><option>Confirmed</option><option>Tentative</option></select></div>
+              </div>
+              <button class="btn-schedule" onclick="addMeeting()">◉ Schedule Meeting</button>
+            </div>
+            <div class="meet-list-panel">
+              <div class="meet-list-hdr">
+                <div class="meet-list-title">Meetings</div>
+                <div class="meet-filter">
+                  <button class="meet-filter-btn active" data-mf="upcoming" onclick="setMeetFilter('upcoming')">Upcoming</button>
+                  <button class="meet-filter-btn" data-mf="past" onclick="setMeetFilter('past')">Past</button>
+                  <button class="meet-filter-btn" data-mf="all" onclick="setMeetFilter('all')">All</button>
+                </div>
+              </div>
+              <div class="meet-items" id="meetItems"></div>
+              <div class="meet-empty" id="meetEmpty"><div class="meet-empty-icon">◉</div><div>No meetings yet</div></div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /content -->
+    </div><!-- /main -->
+  </div><!-- /app-layout -->
+</div><!-- /app-page -->
+
+<!-- TASK MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal-box">
+    <div class="modal-inner">
+      <div class="modal-title" id="modal-title">New Task</div>
+      <input type="hidden" id="edit-id"/>
+      <div class="form-grid">
+        <div class="form-group form-col-2"><label>Task Title *</label><input type="text" id="f-title" placeholder="Enter task title..."/></div>
+        <div class="form-group form-col-2"><label>Description</label><textarea id="f-desc" rows="2" placeholder="Task description..."></textarea></div>
+        <div class="form-group"><label>Date</label><input type="date" id="f-date"/></div>
+        <div class="form-group"><label>Time</label><input type="time" id="f-time"/></div>
+        <div class="form-group"><label>Assigned To</label><select id="f-assigned"><option value="Himanshu">Himanshu</option><option value="Dhrutika">Dhrutika</option></select></div>
+        <div class="form-group"><label>Priority</label><select id="f-priority"><option value="Important">Important</option><option value="Medium" selected>Medium</option><option value="Low">Low</option></select></div>
+        <div class="form-group form-col-2"><label>Status</label><select id="f-status"><option value="Planned" selected>Planned</option><option value="In Progress">In Progress</option><option value="Completed">Completed</option></select></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-save" onclick="saveTask()">Save Task</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<button class="fab" id="fab" onclick="fabClick()" aria-label="Add">+</button>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   SECURITY
+   Passwords SHA-256 hashed. Rate limiting. sessionStorage sessions.
+══════════════════════════════════════════════════════════════ */
+const USERS=[
+  {name:'Himanshu',email:'himanshu@dev.com',hash:'f21a94183c4aac6b67460c08d622a03b94384a29f621744bb2700d816d188757',role:'admin'},
+  {name:'Dhrutika',email:'dhrutika@dev.com',hash:'b28227a750c1494b51d12a3753ed4d29700bfb29c30070529ea3070bef3f0676',role:'partner'}
+];
+async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
+const MAX_ATT=5,LOCK_MS=5*60*1000;
+function getAtt(){try{return JSON.parse(sessionStorage.getItem('_att')||'{"n":0,"lock":0}');}catch{return{n:0,lock:0};}}
+function saveAtt(d){sessionStorage.setItem('_att',JSON.stringify(d));}
+function resetAtt(){sessionStorage.removeItem('_att');}
+function isLocked(){const d=getAtt();return d.lock&&Date.now()<d.lock?d.lock:false;}
+function recFail(){const d=getAtt();d.n++;if(d.n>=MAX_ATT){d.lock=Date.now()+LOCK_MS;d.n=0;}saveAtt(d);return d;}
+function saveSess(u){const tok=crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now();sessionStorage.setItem('_sess',JSON.stringify({...u,tok,exp:Date.now()+8*3600*1000}));}
+function loadSess(){try{const s=JSON.parse(sessionStorage.getItem('_sess')||'null');return(s&&Date.now()<s.exp)?s:null;}catch{return null;}}
+function clearSess(){sessionStorage.removeItem('_sess');}
+
+/* ══ STATE ══ */
+let currentUser=null,tasks=[],calInstance=null;
+let entries=[],meetings=[];
+let currentPeriod='week',currentPeriod2='week',meetFilter='upcoming';
+let chartTimeline=null,chartChannel=null,chartResponse=null;
+let outCalYear,outCalMonth,selectedOutDate=null;
+let currentApp='tasks'; // 'tasks' | 'outreach'
+
+try{tasks=JSON.parse(localStorage.getItem('tt_tasks')||'[]');}catch{tasks=[];}
+try{entries=JSON.parse(localStorage.getItem('outreachEntries')||'[]');}catch{entries=[];}
+try{meetings=JSON.parse(localStorage.getItem('outreachMeetings')||'[]');}catch{meetings=[];}
+
+function saveTasks(){try{localStorage.setItem('tt_tasks',JSON.stringify(tasks));}catch{}}
+function saveEntries(){localStorage.setItem('outreachEntries',JSON.stringify(entries));}
+function saveMeetings(){localStorage.setItem('outreachMeetings',JSON.stringify(meetings));}
+
+/* ══ AUTH ══ */
+async function doLogin(){
+  const lock=isLocked();
+  if(lock){showErr(`Locked. Try again in ${Math.ceil((lock-Date.now())/60000)} min.`);return;}
+  const email=document.getElementById('inp-email').value.trim().toLowerCase();
+  const pass=document.getElementById('inp-pass').value;
+  if(!email||!pass){showErr('Please enter email and password.');return;}
+  const btn=document.getElementById('login-btn');
+  btn.textContent='Signing in…';btn.disabled=true;
+  try{
+    const h=await sha256(pass);
+    const u=USERS.find(x=>x.email===email&&x.hash===h);
+    if(!u){
+      const d=recFail();
+      if(d.lock)showErr('Too many attempts. Locked for 5 minutes.');
+      else{const left=MAX_ATT-d.n;showErr('Invalid email or password.');if(left<=3){const w=document.getElementById('login-attempts');w.textContent=`${left} attempt${left!==1?'s':''} remaining`;w.classList.add('show');}}
+      btn.textContent='Sign In →';btn.disabled=false;return;
+    }
+    resetAtt();
+    currentUser={name:u.name,email:u.email,role:u.role};
+    saveSess(currentUser);
+    btn.textContent='Sign In →';btn.disabled=false;
+    showApp();
+  }catch{showErr('Error. Please try again.');btn.textContent='Sign In →';btn.disabled=false;}
+}
+function showErr(m){const e=document.getElementById('login-error');e.textContent=m;e.classList.add('show');}
+function doLogout(){
+  clearSess();currentUser=null;
+  document.getElementById('app-page').classList.remove('show');
+  document.getElementById('login-page').style.display='flex';
+  ['inp-email','inp-pass'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('login-error').classList.remove('show');
+  document.getElementById('login-attempts').classList.remove('show');
+  if(calInstance){calInstance.destroy();calInstance=null;}
+  [chartTimeline,chartChannel,chartResponse].forEach(c=>{if(c)c.destroy();});
+  chartTimeline=chartChannel=chartResponse=null;
+}
+['inp-pass','inp-email'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();}));
+
+/* ══ APP INIT ══ */
+function showApp(){
+  document.getElementById('login-page').style.display='none';
+  document.getElementById('app-page').classList.add('show');
+  document.getElementById('sb-avatar').textContent=currentUser.name[0];
+  document.getElementById('sb-uname').textContent=currentUser.name;
+  document.getElementById('sb-urole').textContent=currentUser.role==='admin'?'Admin':'Partner';
+  renderTasks();
+  initTaskCalendar();
+  const n=new Date();
+  document.getElementById('inputDate').value=toYMD(n);
+  document.getElementById('mDate').value=toYMD(n);
+  document.getElementById('mTime').value=`${p2(n.getHours()+1)}:00`;
+  const nc=new Date();outCalYear=nc.getFullYear();outCalMonth=nc.getMonth();
+  buildMobileNav();
+}
+window.addEventListener('load',()=>{const s=loadSess();if(s){currentUser=s;showApp();}});
+
+/* ══ APP SWITCHING ══ */
+function switchApp(app){
+  currentApp=app;
+  document.getElementById('sw-tasks').classList.toggle('active',app==='tasks');
+  document.getElementById('sw-outreach').classList.toggle('active',app==='outreach');
+  document.getElementById('task-nav').style.display=app==='tasks'?'block':'none';
+  document.getElementById('outreach-nav').style.display=app==='outreach'?'block':'none';
+  document.getElementById('sb-streak-wrap').style.display=app==='tasks'?'block':'none';
+
+  // Hide all sections
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+
+  if(app==='tasks'){
+    document.getElementById('mode-tag').textContent='Tasks';
+    document.getElementById('mode-tag').className='mode-tag';
+    document.getElementById('main-add-btn').textContent='+ New Task';
+    document.getElementById('main-add-btn').className='add-btn';
+    document.getElementById('main-add-btn').onclick=openModal;
+    document.getElementById('imp-badge').style.display='';
+    // Restore active task section
+    const activeTaskBtn=document.querySelector('#task-nav .nav-btn.active');
+    if(activeTaskBtn){
+      const sec=activeTaskBtn.dataset.sec;
+      document.getElementById('sec-'+sec).classList.add('active');
+      document.getElementById('page-title').textContent={dashboard:'Dashboard',tasks:'Task List',calendar:'Calendar'}[sec];
+    } else {
+      document.getElementById('sec-dashboard').classList.add('active');
+      document.getElementById('page-title').textContent='Dashboard';
+    }
+    renderTasks();
+  } else {
+    document.getElementById('mode-tag').textContent='Outreach OS';
+    document.getElementById('mode-tag').className='mode-tag outreach';
+    document.getElementById('main-add-btn').textContent='+ Log Entry';
+    document.getElementById('main-add-btn').className='add-btn green-btn';
+    document.getElementById('main-add-btn').onclick=()=>switchOutPage('out-log',document.querySelector('[data-out=out-log]'));
+    document.getElementById('imp-badge').style.display='none';
+    const activeOutBtn=document.querySelector('#outreach-nav .nav-btn.active');
+    if(activeOutBtn){
+      const pg=activeOutBtn.dataset.out;
+      document.getElementById('sec-'+pg).classList.add('active');
+      document.getElementById('page-title').textContent=activeOutBtn.textContent.trim();
+    } else {
+      document.getElementById('sec-out-dashboard').classList.add('active');
+      document.getElementById('page-title').textContent='Outreach Dashboard';
+      renderOutDashboard();
+    }
+  }
+  buildMobileNav();
+}
+
+/* ══ TASK SECTION SWITCHING ══ */
+const TITLES={dashboard:'Dashboard',tasks:'Task List',calendar:'Calendar'};
+function switchSection(name,btn){
+  if(currentApp!=='tasks')switchApp('tasks');
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('#task-nav .nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+  document.getElementById('page-title').textContent=TITLES[name];
+  if(name==='calendar'){refreshTaskCal();renderHeatmap();}
+  updateMobNav(name,false);
+}
+
+/* ══ OUTREACH SECTION SWITCHING ══ */
+const OUT_TITLES={'out-dashboard':'Outreach Dashboard','out-log':'Log Entry','out-records':'All Records','out-calendar':'Calendar','out-meetings':'Meetings'};
+function switchOutPage(name,btn){
+  if(currentApp!=='outreach')switchApp('outreach');
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('#outreach-nav .nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+  document.getElementById('page-title').textContent=OUT_TITLES[name]||name;
+  if(name==='out-dashboard')renderOutDashboard();
+  if(name==='out-log')renderLog();
+  if(name==='out-records')renderRecords();
+  if(name==='out-calendar'){renderOutCalendar();}
+  if(name==='out-meetings')renderMeetings();
+  updateMobNav(name,true);
+}
+
+/* ══ MOBILE NAV ══ */
+function buildMobileNav(){
+  const inner=document.getElementById('mob-nav-inner');
+  inner.innerHTML='';
+  const nav=document.getElementById('mobile-nav');
+  nav.style.display='block';
+  if(currentApp==='tasks'){
+    [['dashboard','▣','Dash'],['tasks','≡','Tasks'],['calendar','◫','Calendar']].forEach(([sec,icon,label])=>{
+      const b=document.createElement('button');
+      const isActive=document.getElementById('sec-'+sec).classList.contains('active');
+      b.className='mob-nav-btn'+(isActive?' active':'');
+      b.innerHTML=`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><text x="3" y="14" font-size="12" fill="currentColor" stroke="none">${icon}</text></svg>${label}`;
+      b.onclick=()=>switchSection(sec,document.querySelector(`[data-sec="${sec}"]`));
+      inner.appendChild(b);
+    });
+    // Also add Outreach tab
+    const ob=document.createElement('button');
+    ob.className='mob-nav-btn out-mob';
+    ob.innerHTML=`<svg viewBox="0 0 20 20"><text x="2" y="14" font-size="11" fill="currentColor" stroke="none">◉</text></svg>Outreach`;
+    ob.onclick=()=>switchApp('outreach');
+    inner.appendChild(ob);
+  } else {
+    [['out-dashboard','◉','Dash'],['out-log','+','Log'],['out-records','⊟','Records'],['out-meetings','◉','Meet']].forEach(([pg,icon,label])=>{
+      const b=document.createElement('button');
+      const isActive=document.getElementById('sec-'+pg).classList.contains('active');
+      b.className='mob-nav-btn out-mob'+(isActive?' active':'');
+      b.innerHTML=`<svg viewBox="0 0 20 20"><text x="3" y="14" font-size="11" fill="currentColor" stroke="none">${icon}</text></svg>${label}`;
+      b.onclick=()=>switchOutPage(pg,document.querySelector(`[data-out="${pg}"]`));
+      inner.appendChild(b);
+    });
+    const tb=document.createElement('button');
+    tb.className='mob-nav-btn';
+    tb.innerHTML=`<svg viewBox="0 0 20 20"><text x="3" y="14" font-size="11" fill="currentColor" stroke="none">▣</text></svg>Tasks`;
+    tb.onclick=()=>switchApp('tasks');
+    inner.appendChild(tb);
+  }
+}
+function updateMobNav(active,isOut){
+  document.querySelectorAll('.mob-nav-btn').forEach(b=>{
+    b.classList.remove('active');
+    const sec=b.dataset?.sec||b.dataset?.out;
+    if(sec===active)b.classList.add('active');
+  });
+}
+function fabClick(){
+  if(currentApp==='tasks')openModal();
+  else switchOutPage('out-log',document.querySelector('[data-out=out-log]'));
+}
+
+/* ══ SIDEBAR ══ */
+function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('sidebar-overlay').classList.add('show');document.body.style.overflow='hidden';}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('show');document.body.style.overflow='';}
+
+/* ══ HELPERS ══ */
+function genId(){return '_'+Math.random().toString(36).slice(2,11);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toYMD(d){return d.toISOString().slice(0,10);}
+function p2(n){return String(n).padStart(2,'0');}
+function pClass(p){return{Important:'p-imp',Medium:'p-med',Low:'p-low'}[p]||'';}
+function sClass(s){return{'Planned':'s-planned','In Progress':'s-progress','Completed':'s-done-s'}[s]||'';}
+function calColor(p){return{Important:'#ef4444',Medium:'#eab308',Low:'#444'}[p]||'#3b82f6';}
+function fmtDate(d){return d?new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):''}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+/* ══════════════════════════════════════
+   TASK MANAGER
+══════════════════════════════════════ */
+function renderTasks(){
+  const pending=tasks.filter(t=>t.status!=='Completed');
+  const completed=tasks.filter(t=>t.status==='Completed');
+  const important=tasks.filter(t=>t.priority==='Important');
+  document.getElementById('st-total').textContent=tasks.length;
+  document.getElementById('st-imp').textContent=important.length;
+  document.getElementById('st-pend').textContent=pending.length;
+  document.getElementById('st-done').textContent=completed.length;
+  const badge=document.getElementById('imp-badge');
+  if(important.length>0){badge.style.display='flex';document.getElementById('imp-count').textContent=important.length;}else badge.style.display='none';
+  renderDashPrev('dash-pending',pending.slice(0,6),false);
+  renderDashPrev('dash-done',completed.slice(0,6),true);
+  document.getElementById('dash-done-cnt').textContent=completed.length;
+  renderTaskTable('tbl-pending',pending,'pend-cnt','pend-empty');
+  renderTaskTable('tbl-done',completed,'done-cnt','done-empty');
+  if(calInstance)refreshTaskCal();
+  renderStreak();renderHeatmap();
+}
+
+function renderDashPrev(cid,list,isDone){
+  const el=document.getElementById(cid);
+  if(!list.length){el.innerHTML=`<div class="empty-box">${isDone?'No completed tasks yet.':'All clear.'}</div>`;return;}
+  el.innerHTML=list.map(t=>{
+    const dc=isDone?'dot-green':t.priority==='Important'?'dot-red':t.priority==='Medium'?'dot-yellow':'dot-gray';
+    return `<div class="prev-item"><div class="prev-left"><div class="prev-dot ${dc}"></div><span class="prev-title ${isDone?'done-text':''}">${esc(t.title)}</span><span class="person-pill">${esc(t.assignedTo)}</span></div><div class="prev-right">${!isDone?`<span class="p-badge ${pClass(t.priority)}">${esc(t.priority)}</span>`:''}<span class="s-badge ${sClass(t.status)}">${esc(t.status)}</span>${t.date?`<span class="date-td">${fmtDate(t.date)}</span>`:''}</div></div>`;
+  }).join('');
+}
+
+function renderTaskTable(tbodyId,list,cntId,emptyId){
+  document.getElementById(cntId).textContent=list.length;
+  const empty=document.getElementById(emptyId);
+  if(!list.length){document.getElementById(tbodyId).innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  document.getElementById(tbodyId).innerHTML=list.map(t=>`
+    <tr><td><div class="task-name ${t.status==='Completed'?'done-text':''}">${esc(t.title)}</div>${t.description?`<div class="task-desc-sm">${esc(t.description)}</div>`:''}</td>
+    <td><span class="person-pill">${esc(t.assignedTo)}</span></td>
+    <td><span class="date-td">${fmtDate(t.date)}</span></td>
+    <td><span class="p-badge ${pClass(t.priority)}">${esc(t.priority)}</span></td>
+    <td><span class="s-badge ${sClass(t.status)}">${esc(t.status)}</span></td>
+    <td><div style="display:flex;gap:4px"><button class="act-btn" onclick="openEdit('${esc(t.id)}')">edit</button><button class="act-btn" onclick="deleteTask('${esc(t.id)}')">del</button></div></td></tr>`
+  ).join('');
+}
+
+/* Task Modal */
+function openModal(prefillDate=''){
+  document.getElementById('modal-title').textContent='New Task';
+  ['edit-id','f-title','f-desc','f-time'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-date').value=prefillDate;
+  document.getElementById('f-assigned').value='Himanshu';
+  document.getElementById('f-priority').value='Medium';
+  document.getElementById('f-status').value='Planned';
+  document.getElementById('modal').classList.add('show');
+  setTimeout(()=>document.getElementById('f-title').focus(),100);
+}
+function openEdit(id){
+  const t=tasks.find(t=>t.id===id);if(!t)return;
+  document.getElementById('modal-title').textContent='Edit Task';
+  document.getElementById('edit-id').value=t.id;
+  document.getElementById('f-title').value=t.title;
+  document.getElementById('f-desc').value=t.description||'';
+  document.getElementById('f-date').value=t.date||'';
+  document.getElementById('f-time').value=t.time||'';
+  document.getElementById('f-assigned').value=t.assignedTo;
+  document.getElementById('f-priority').value=t.priority;
+  document.getElementById('f-status').value=t.status;
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+function closeModalOutside(e){if(e.target.id==='modal')closeModal();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+function saveTask(){
+  const title=document.getElementById('f-title').value.trim();
+  if(!title){alert('Task title is required!');return;}
+  const editId=document.getElementById('edit-id').value;
+  const data={title,description:document.getElementById('f-desc').value.trim(),date:document.getElementById('f-date').value,time:document.getElementById('f-time').value,assignedTo:document.getElementById('f-assigned').value,priority:document.getElementById('f-priority').value,status:document.getElementById('f-status').value};
+  if(editId){const idx=tasks.findIndex(t=>t.id===editId);if(idx!==-1)tasks[idx]={...tasks[idx],...data};}
+  else tasks.unshift({id:genId(),...data,createdBy:currentUser.name,createdAt:new Date().toISOString()});
+  saveTasks();closeModal();renderTasks();toast('Task saved ✓');
+}
+function deleteTask(id){
+  const t=tasks.find(t=>t.id===id);
+  if(!t||!confirm(`Delete "${t.title}"?`))return;
+  tasks=tasks.filter(t=>t.id!==id);saveTasks();renderTasks();
+}
+
+/* Task Calendar */
+function initTaskCalendar(){
+  calInstance=new FullCalendar.Calendar(document.getElementById('fc-calendar'),{
+    initialView:'dayGridMonth',headerToolbar:{left:'prev,next today',center:'title',right:''},height:'auto',
+    events:getCalEvents(),
+    dateClick:info=>openModal(info.dateStr),
+    eventClick:info=>{const t=tasks.find(t=>t.id===info.event.id);if(t)openEdit(t.id);}
+  });
+  calInstance.render();
+}
+function getCalEvents(){return tasks.filter(t=>t.date).map(t=>({id:t.id,title:t.title,date:t.date,backgroundColor:calColor(t.priority),borderColor:calColor(t.priority),textColor:'#fff'}));}
+function refreshTaskCal(){if(!calInstance)return;calInstance.removeAllEvents();calInstance.addEventSource(getCalEvents());setTimeout(markCalActivity,100);}
+function markCalActivity(){
+  if(!calInstance)return;
+  const ad=getActiveDays();
+  document.querySelectorAll('.fc-day-has-activity').forEach(el=>el.classList.remove('fc-day-has-activity'));
+  Object.keys(ad).forEach(d=>{const el=document.querySelector(`[data-date="${d}"]`);if(el)el.classList.add('fc-day-has-activity');});
+}
+
+/* Streak */
+function getActiveDays(){const m={};tasks.forEach(t=>{if(t.createdAt){const d=t.createdAt.slice(0,10);m[d]=(m[d]||0)+1;}});return m;}
+function calcStreak(ad){let s=0;const c=new Date();const today=toYMD(new Date());while(true){const d=toYMD(c);if(ad[d]){s++;c.setDate(c.getDate()-1);}else if(d===today){c.setDate(c.getDate()-1);if(!ad[toYMD(c)])break;}else break;}return s;}
+function calcBest(ad){const days=Object.keys(ad).sort();if(!days.length)return 0;let best=1,cur=1;for(let i=1;i<days.length;i++){const diff=(new Date(days[i])-new Date(days[i-1]))/86400000;if(diff===1){cur++;best=Math.max(best,cur);}else cur=1;}return best;}
+function streakMsg(s,tt){
+  if(tt>0&&s>=30)return{t:"Legendary. 30+ days strong!",c:''};
+  if(tt>0&&s>=14)return{t:"Two weeks! You're unstoppable.",c:''};
+  if(tt>0&&s>=7)return{t:"One week! Keep the chain.",c:''};
+  if(tt>0&&s>=3)return{t:"Nice rhythm. Don't break it.",c:''};
+  if(tt>0&&s>=1)return{t:"Great start. Come back tomorrow!",c:''};
+  if(tt===0&&s>=1)return{t:"Add a task to keep your streak!",c:'warn'};
+  return{t:"Log your first task to begin.",c:'cold'};
+}
+function renderStreak(){
+  const ad=getActiveDays();const ts=toYMD(new Date());const tt=ad[ts]||0;
+  const s=calcStreak(ad);const best=calcBest(ad);const active=Object.keys(ad).length;
+  const msg=streakMsg(s,tt);
+  document.getElementById('streak-count').textContent=s;
+  document.getElementById('streak-best').textContent=best;
+  document.getElementById('streak-active').textContent=active;
+  document.getElementById('streak-today').textContent=tt;
+  document.getElementById('streak-sub').textContent=tt>0?`${tt} task${tt>1?'s':''} today`:'No tasks today yet';
+  const msgEl=document.getElementById('streak-msg');msgEl.textContent=msg.t;msgEl.className='streak-msg '+msg.c;
+  const off=s===0?'grayscale(1) opacity(0.3)':'';
+  document.querySelector('.streak-flame').style.filter=off;
+  const sf=document.getElementById('sb-streak-flame');if(sf)sf.style.filter=off;
+  const sn=document.getElementById('sb-streak-num');if(sn)sn.textContent=s;
+}
+function renderHeatmap(){
+  const grid=document.getElementById('heatmap-grid');if(!grid)return;
+  const ad=getActiveDays();const today=new Date();const ts=toYMD(today);
+  const start=new Date(today);start.setDate(start.getDate()-111);
+  grid.innerHTML=Array.from({length:112},(_,i)=>{
+    const d=new Date(start);d.setDate(d.getDate()+i);
+    const ds=toYMD(d);const n=ad[ds]||0;
+    const lv=n>=5?4:n>=3?3:n>=2?2:n>=1?1:0;
+    return `<div class="hm-cell hm-${lv}${ds===ts?' hm-today':''}" data-tip="${ds}${n?': '+n+' task'+(n>1?'s':''):': no tasks'}"></div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════
+   OUTREACH OS
+══════════════════════════════════════ */
+const CHANNELS=['LinkedIn','Cold Mail','Social Media','Call','Meeting'];
+const CH_ICONS={LinkedIn:'LI','Cold Mail':'EM','Social Media':'SM',Call:'CL',Meeting:'MT'};
+
+function parseLocal(s){if(!s)return new Date(NaN);const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function todayStr(){const n=new Date();return `${n.getFullYear()}-${p2(n.getMonth()+1)}-${p2(n.getDate())}`;}
+function startOfDay(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+function getPeriodRange(period){
+  const now=new Date(),today=startOfDay(now);
+  if(period==='day')return{start:today,end:now,label:'Today — '+now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})};
+  if(period==='week'){const s=new Date(today);s.setDate(today.getDate()-6);return{start:s,end:now,label:'Last 7 Days — '+s.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' → '+now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})};}
+  if(period==='month'){const s=new Date(now.getFullYear(),now.getMonth(),1);return{start:s,end:now,label:now.toLocaleDateString('en-US',{month:'long',year:'numeric'})};}
+  if(period==='year'){const s=new Date(now.getFullYear(),0,1);return{start:s,end:now,label:'Year '+now.getFullYear()};}
+  return{start:new Date(0),end:now,label:'All Time'};
+}
+function isInPeriod(ds,period){const d=parseLocal(ds);if(isNaN(d))return false;const{start,end}=getPeriodRange(period);return d>=start&&d<=end;}
+function setPeriod(p){currentPeriod=p;document.querySelectorAll('[data-period]').forEach(b=>b.classList.remove('active'));document.querySelector(`[data-period="${p}"]`).classList.add('active');renderOutDashboard();}
+function setPeriod2(p){currentPeriod2=p;document.querySelectorAll('[data-period2]').forEach(b=>b.classList.remove('active'));document.querySelector(`[data-period2="${p}"]`).classList.add('active');renderRecords();}
+function setMeetFilter(f){meetFilter=f;document.querySelectorAll('[data-mf]').forEach(b=>b.classList.remove('active'));document.querySelector(`[data-mf="${f}"]`).classList.add('active');renderMeetings();}
+
+function addEntry(){
+  const name=document.getElementById('inputName').value.trim();
+  if(!name){document.getElementById('inputName').focus();return;}
+  entries.unshift({id:Date.now(),name,channel:document.getElementById('inputChannel').value,response:document.getElementById('inputResponse').value,date:document.getElementById('inputDate').value,notes:document.getElementById('inputNotes').value.trim()});
+  saveEntries();
+  document.getElementById('inputName').value='';document.getElementById('inputNotes').value='';document.getElementById('inputResponse').value='Pending';
+  renderLog();toast('Entry logged ✓');
+}
+function deleteEntry(id){entries=entries.filter(e=>e.id!==id);saveEntries();renderLog();if(document.getElementById('sec-out-dashboard').classList.contains('active'))renderOutDashboard();}
+function deleteEntryAndRefreshCal(id){entries=entries.filter(e=>e.id!==id);saveEntries();renderOutCalendar();if(selectedOutDate)showOutDayDetail(selectedOutDate);}
+
+function generateMeetLink(){const c='abcdefghijklmnopqrstuvwxyz';const seg=n=>Array.from({length:n},()=>c[Math.floor(Math.random()*26)]).join('');document.getElementById('mLink').value=`https://meet.google.com/${seg(3)}-${seg(4)}-${seg(3)}`;toast('Meet link generated ✓');}
+
+function addMeeting(){
+  const title=document.getElementById('mTitle').value.trim();
+  const mWith=document.getElementById('mWith').value.trim();
+  const date=document.getElementById('mDate').value;
+  const time=document.getElementById('mTime').value;
+  if(!title){toast('Please enter a meeting title');return;}
+  if(!mWith){toast('Please enter attendee name');return;}
+  if(!date){toast('Please select a date');return;}
+  if(!time){toast('Please select a time');return;}
+  meetings.unshift({id:Date.now(),title,with:mWith,date,time,duration:parseInt(document.getElementById('mDuration').value),link:document.getElementById('mLink').value.trim(),notes:document.getElementById('mNotes').value.trim(),channel:document.getElementById('mChannel').value,status:document.getElementById('mStatus').value});
+  saveMeetings();
+  ['mTitle','mWith','mLink','mNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('mStatus').value='Scheduled';
+  renderMeetings();renderOutDashboard();toast('Meeting scheduled ✓');
+}
+function deleteMeeting(id){meetings=meetings.filter(m=>m.id!==id);saveMeetings();renderMeetings();if(document.getElementById('sec-out-dashboard').classList.contains('active'))renderOutDashboard();}
+function copyLink(link){navigator.clipboard.writeText(link).then(()=>toast('Link copied ✓')).catch(()=>{const el=document.createElement('input');el.value=link;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);toast('Link copied ✓');});}
+
+function getMeetDT(m){const[y,mo,d]=m.date.split('-').map(Number);const[h,min]=m.time.split(':').map(Number);return new Date(y,mo-1,d,h,min);}
+function getMeetStatus(m){const now=new Date();const start=getMeetDT(m);const end=new Date(start.getTime()+m.duration*60000);if(end<now)return'past';if(toYMD(startOfDay(start))===toYMD(startOfDay(now)))return'today';return'upcoming';}
+function getCountdown(m){
+  const now=new Date(),start=getMeetDT(m),diff=start-now;
+  if(diff<0){const end=new Date(start.getTime()+m.duration*60000);if(end>now)return{label:'IN PROGRESS',cls:'today'};const ago=now-end,d=Math.floor(ago/86400000);if(d>0)return{label:d+'D AGO',cls:'past'};const h=Math.floor(ago/3600000);if(h>0)return{label:h+'H AGO',cls:'past'};return{label:'JUST ENDED',cls:'past'};}
+  const d=Math.floor(diff/86400000);
+  if(d===0){const h=Math.floor(diff/3600000);if(h===0){const min=Math.floor(diff/60000);return{label:'IN '+min+'MIN',cls:'today'};}return{label:'TODAY '+h+'H',cls:'today'};}
+  if(d===1)return{label:'TOMORROW',cls:'upcoming'};return{label:'IN '+d+' DAYS',cls:'upcoming'};
+}
+
+function renderMeetings(){
+  let filtered=meetings;
+  if(meetFilter==='upcoming')filtered=meetings.filter(m=>getMeetStatus(m)!=='past');
+  if(meetFilter==='past')filtered=meetings.filter(m=>getMeetStatus(m)==='past');
+  filtered=[...filtered].sort((a,b)=>{const da=getMeetDT(a),db=getMeetDT(b);return meetFilter==='past'?db-da:da-db;});
+  const items=document.getElementById('meetItems'),empty=document.getElementById('meetEmpty');
+  items.innerHTML='';
+  if(!filtered.length){items.style.display='none';empty.style.display='flex';empty.innerHTML=`<div class="meet-empty-icon">◉</div><div>${meetFilter==='past'?'No past meetings.':meetFilter==='upcoming'?'No upcoming meetings.':'No meetings yet.'}</div>`;return;}
+  items.style.display='block';empty.style.display='none';
+  filtered.forEach((m,i)=>{
+    const st=getMeetStatus(m),cd=getCountdown(m);
+    const startDt=getMeetDT(m),endDt=new Date(startDt.getTime()+m.duration*60000);
+    const df=startDt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    const tf=startDt.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})+' → '+endDt.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    const div=document.createElement('div');div.className='meet-item'+(st==='past'?' past-meet':'');div.style.animationDelay=(i*.04)+'s';
+    div.innerHTML=`<div class="meet-item-top"><div><div class="meet-item-title">${esc(m.title)}</div><div class="meet-item-with">with ${esc(m.with)} · ${esc(m.channel)} · ${esc(m.status)}</div></div><div style="display:flex;align-items:center;gap:7px;flex-shrink:0"><div class="status-dot status-${st}"></div><span class="meet-countdown ${cd.cls}">${cd.label}</span></div></div><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span class="meet-time-badge">📅 ${df}</span><span class="meet-time-badge">🕐 ${tf} (${m.duration}min)</span></div>${m.link?`<div><a class="meet-link-pill" href="${esc(m.link)}" target="_blank" rel="noopener"><span>📹</span>Join Meet</a></div>`:''} ${m.notes?`<div class="meet-notes">${esc(m.notes)}</div>`:''}<div class="meet-actions">${m.link?`<button class="btn-copy-link" onclick="copyLink('${esc(m.link)}')">Copy Link</button>`:''}<button class="btn-meet-del" onclick="deleteMeeting(${m.id})">Delete</button></div>`;
+    items.appendChild(div);
+  });
+}
+
+function renderOutDashboard(){
+  const filtered=entries.filter(e=>isInPeriod(e.date,currentPeriod));
+  const total=filtered.length,responded=filtered.filter(e=>e.response==='Yes').length,pending=filtered.filter(e=>e.response==='Pending').length,noReply=filtered.filter(e=>e.response==='No').length,calls=filtered.filter(e=>e.channel==='Call').length;
+  const rate=total>0?Math.round((responded/total)*100):0;
+  const meetCount=meetings.filter(m=>isInPeriod(m.date,currentPeriod)).length;
+  document.getElementById('statTotal').textContent=total;
+  document.getElementById('statResponded').textContent=responded;
+  document.getElementById('statRate').textContent=rate+'%';
+  document.getElementById('statMeetings').textContent=meetCount;
+  document.getElementById('statCalls').textContent=calls;
+  document.getElementById('statPending').textContent=pending;
+  const{label}=getPeriodRange(currentPeriod);
+  document.getElementById('periodLabel').innerHTML=`Showing: <strong>${label}</strong>`;
+
+  // Upcoming strip
+  const upcoming=meetings.filter(m=>getMeetStatus(m)!=='past').sort((a,b)=>getMeetDT(a)-getMeetDT(b)).slice(0,5);
+  const strip=document.getElementById('out-upcoming-strip');
+  if(upcoming.length>0){
+    strip.style.display='flex';
+    document.getElementById('out-upcoming-pills').innerHTML=upcoming.map(m=>{const dt=getMeetDT(m);return`<div class="upcoming-pill" onclick="switchOutPage('out-meetings',document.querySelector('[data-out=out-meetings]'))"><div class="upcoming-pill-title">${esc(m.title)}</div><div class="upcoming-pill-time">${dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${dt.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</div></div>`;}).join('');
+  }else strip.style.display='none';
+
+  const CHART_DEF={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}};
+  const mk=(ex,id,cfg)=>{if(ex)ex.destroy();return new Chart(document.getElementById(id).getContext('2d'),cfg);};
+  const monoFont="'IBM Plex Mono',monospace";
+
+  const tl=buildTimeline(filtered,currentPeriod);
+  chartTimeline=mk(chartTimeline,'chartTimeline',{type:'bar',data:{labels:tl.labels,datasets:[{data:tl.buckets,backgroundColor:'rgba(245,245,240,0.12)',borderColor:'rgba(245,245,240,0.5)',borderWidth:1,borderRadius:2}]},options:{...CHART_DEF,scales:{x:{ticks:{color:'#444',font:{family:monoFont,size:8},maxRotation:45},grid:{color:'rgba(255,255,255,0.03)'}},y:{ticks:{color:'#444',font:{family:monoFont,size:8},stepSize:1},grid:{color:'rgba(255,255,255,0.03)'},beginAtZero:true}}}});
+  const grays=['rgba(245,245,240,.9)','rgba(200,200,195,.7)','rgba(150,150,148,.6)','rgba(100,100,99,.55)','rgba(60,60,60,.6)'];
+  chartChannel=mk(chartChannel,'chartChannel',{type:'doughnut',data:{labels:CHANNELS,datasets:[{data:CHANNELS.map(ch=>filtered.filter(e=>e.channel===ch).length),backgroundColor:grays,borderColor:'#080808',borderWidth:2}]},options:{...CHART_DEF,cutout:'62%',plugins:{legend:{display:true,position:'bottom',labels:{color:'#555',font:{family:monoFont,size:8},padding:8,boxWidth:8}}}}});
+  chartResponse=mk(chartResponse,'chartResponse',{type:'doughnut',data:{labels:['Responded','No Reply','Pending'],datasets:[{data:[responded,noReply,pending],backgroundColor:['rgba(245,245,240,.9)','rgba(60,60,60,.7)','rgba(120,120,118,.5)'],borderColor:'#080808',borderWidth:2}]},options:{...CHART_DEF,cutout:'62%',plugins:{legend:{display:true,position:'bottom',labels:{color:'#555',font:{family:monoFont,size:8},padding:8,boxWidth:8}}}}});
+
+  const grid=document.getElementById('channelGrid');grid.innerHTML='';
+  CHANNELS.forEach(ch=>{const ce=filtered.filter(e=>e.channel===ch);const ct=ce.length,cr=ce.filter(e=>e.response==='Yes').length,pct=total>0?Math.round((ct/total)*100):0;const card=document.createElement('div');card.className='ch-card';card.innerHTML=`<div class="ch-label">${CH_ICONS[ch]} — ${ch}</div><div class="ch-count">${ct}</div><div class="ch-resp">${cr} responded</div><div class="ch-bar"><div class="ch-bar-fill" style="width:${pct}%"></div></div>`;grid.appendChild(card);});
+
+  const rc=document.getElementById('rateRows');rc.innerHTML='';
+  CHANNELS.forEach(ch=>{const ce=filtered.filter(e=>e.channel===ch);const ct=ce.length,cr=ce.filter(e=>e.response==='Yes').length,pct=ct>0?Math.round((cr/ct)*100):0;const row=document.createElement('div');row.className='rate-row';row.innerHTML=`<div class="rate-label">${ch}</div><div class="rate-bar-outer"><div class="rate-bar-inner" style="width:${pct}%"></div></div><div class="rate-pct">${pct}%</div>`;rc.appendChild(row);});
+}
+
+function buildTimeline(filtered,period){
+  const now=new Date();let labels=[],buckets=[];
+  if(period==='day'){labels=['Today'];buckets=[filtered.length];}
+  else if(period==='week'){for(let i=6;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);labels.push(d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}));buckets.push(filtered.filter(e=>e.date===toYMD(d)).length);}}
+  else if(period==='month'){const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();for(let d=1;d<=dim;d++){labels.push(String(d));const ds=`${now.getFullYear()}-${p2(now.getMonth()+1)}-${p2(d)}`;buckets.push(filtered.filter(e=>e.date===ds).length);}}
+  else if(period==='year'){const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];for(let m=0;m<12;m++){labels.push(mn[m]);buckets.push(filtered.filter(e=>{const d=parseLocal(e.date);return d.getFullYear()===now.getFullYear()&&d.getMonth()===m;}).length);}}
+  else{const map={};filtered.forEach(e=>{const d=parseLocal(e.date);const k=`${d.getFullYear()}-${p2(d.getMonth()+1)}`;map[k]=(map[k]||0)+1;});const sk=Object.keys(map).sort();if(!sk.length)return{labels:['No data'],buckets:[0]};sk.forEach(k=>{const[yr,mo]=k.split('-');labels.push(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(mo)-1]+" '"+yr.slice(2));buckets.push(map[k]);});}
+  return{labels,buckets};
+}
+
+function makeRow(e,i){
+  const tr=document.createElement('tr');
+  const ck=e.channel.replace(/\s+/g,'').toLowerCase();
+  const rc=e.response==='Yes'?'resp-yes':e.response==='No'?'resp-no':'resp-pending';
+  tr.innerHTML=`<td style="color:#333;font-family:'IBM Plex Mono',monospace;font-size:9px">${p2(i+1)}</td><td style="color:var(--text);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.name)}</td><td><span class="badge">${esc(e.channel)}</span></td><td><span class="resp-badge ${rc}">${esc(e.response)}</span></td><td style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#444;white-space:nowrap">${e.date}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#444">${e.notes||'—'}</td><td><button class="btn-del" onclick="deleteEntry(${e.id})">Del</button></td>`;
+  return tr;
+}
+function renderLog(){
+  const tbody=document.getElementById('recentLogBody');tbody.innerHTML='';
+  const recent=entries.slice(0,30);
+  document.getElementById('recentEmptyState').style.display=recent.length===0?'block':'none';
+  recent.forEach((e,i)=>tbody.appendChild(makeRow(e,i)));
+}
+function renderRecords(){
+  const filtered=entries.filter(e=>isInPeriod(e.date,currentPeriod2));
+  const{label}=getPeriodRange(currentPeriod2);
+  document.getElementById('periodLabel2').innerHTML=`Showing: <strong>${label}</strong>`;
+  const tbody=document.getElementById('allLogBody');tbody.innerHTML='';
+  document.getElementById('allEmptyState').style.display=filtered.length===0?'block':'none';
+  filtered.forEach((e,i)=>tbody.appendChild(makeRow(e,i)));
+}
+
+/* Outreach Calendar */
+function outCalNav(dir){outCalMonth+=dir;if(outCalMonth>11){outCalMonth=0;outCalYear++;}if(outCalMonth<0){outCalMonth=11;outCalYear--;}renderOutCalendar();}
+function outCalToday(){const n=new Date();outCalYear=n.getFullYear();outCalMonth=n.getMonth();renderOutCalendar();}
+
+function renderOutCalendar(){
+  const MN=['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  document.getElementById('outCalMonth').textContent=MN[outCalMonth]+' '+outCalYear;
+  const grid=document.getElementById('outCalGrid');grid.innerHTML='';
+  const firstDay=new Date(outCalYear,outCalMonth,1).getDay();
+  const dim=new Date(outCalYear,outCalMonth+1,0).getDate();
+  const dip=new Date(outCalYear,outCalMonth,0).getDate();
+  const today=todayStr();
+  const dateMap={};
+  entries.forEach(e=>{if(!dateMap[e.date])dateMap[e.date]=[];dateMap[e.date].push({type:'entry',...e});});
+  meetings.forEach(m=>{if(!dateMap[m.date])dateMap[m.date]=[];dateMap[m.date].push({type:'meeting',...m});});
+
+  for(let i=firstDay-1;i>=0;i--){const cell=document.createElement('div');cell.className='out-cal-day other-month';cell.innerHTML=`<div class="out-cal-num">${dip-i}</div>`;grid.appendChild(cell);}
+  for(let d=1;d<=dim;d++){
+    const ds=`${outCalYear}-${p2(outCalMonth+1)}-${p2(d)}`;
+    const dayItems=dateMap[ds]||[];
+    const dayEntries=dayItems.filter(x=>x.type==='entry');
+    const dayMeets=dayItems.filter(x=>x.type==='meeting');
+    const cell=document.createElement('div');
+    let cls='out-cal-day';if(ds===today)cls+=' today-day';if(selectedOutDate===ds)cls+=' selected-day';
+    cell.className=cls;
+    const numEl=document.createElement('div');numEl.className='out-cal-num';numEl.textContent=d;cell.appendChild(numEl);
+    if(dayEntries.length>0){const c=document.createElement('div');c.className='out-cal-count';c.textContent=dayEntries.length;cell.appendChild(c);}
+    const dots=document.createElement('div');dots.className='out-cal-dots';
+    dayEntries.slice(0,6).forEach(e=>{const dot=document.createElement('div');dot.className='out-cal-dot out-cal-dot-'+(e.response==='Yes'?'yes':e.response==='No'?'no':'pending');dots.appendChild(dot);});
+    if(dayMeets.length>0){const dot=document.createElement('div');dot.className='out-cal-dot out-cal-dot-meet';dots.appendChild(dot);}
+    cell.appendChild(dots);
+    if(dayMeets.length>0){const mb=document.createElement('span');mb.className='out-cal-meet-badge';mb.textContent='◉ '+dayMeets.length+' mtg';cell.appendChild(mb);}
+    cell.addEventListener('click',()=>{selectedOutDate=ds;renderOutCalendar();showOutDayDetail(ds);});
+    grid.appendChild(cell);
+  }
+  const total=firstDay+dim,rem=total%7===0?0:7-(total%7);
+  for(let d=1;d<=rem;d++){const cell=document.createElement('div');cell.className='out-cal-day other-month';cell.innerHTML=`<div class="out-cal-num">${d}</div>`;grid.appendChild(cell);}
+  if(selectedOutDate)showOutDayDetail(selectedOutDate);
+}
+
+function showOutDayDetail(ds){
+  const dayEntries=entries.filter(e=>e.date===ds);
+  const dayMeets=meetings.filter(m=>m.date===ds);
+  const d=parseLocal(ds);
+  const fmt=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('outCalDetailDate').textContent=fmt.toUpperCase();
+  const total=dayEntries.length+dayMeets.length;
+  document.getElementById('outCalDetailCount').textContent=total===0?'Nothing logged':dayEntries.length+' contact'+(dayEntries.length===1?'':'s')+(dayMeets.length>0?' · '+dayMeets.length+' meeting'+(dayMeets.length===1?'':'s'):'');
+  const empty=document.getElementById('outCalDetailEmpty');
+  const list=document.getElementById('outCalEntryList');
+  if(total===0){empty.innerHTML='<div style="font-size:22px;opacity:.2">◻</div><div>Nothing on this day</div>';empty.style.display='flex';list.style.display='none';return;}
+  empty.style.display='none';list.style.display='block';list.innerHTML='';
+  dayMeets.forEach((m,idx)=>{
+    const item=document.createElement('div');item.className='out-cal-entry-item';item.style.animationDelay=(idx*.05)+'s';item.style.borderLeft='2px solid var(--meet)';
+    const st=getMeetDT(m);
+    item.innerHTML=`<div class="out-cal-entry-name" style="color:var(--meet)">◉ ${esc(m.title)}</div><div class="out-cal-entry-meta"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3)">${st.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})} · ${m.duration}min</span>${m.link?`<a href="${esc(m.link)}" target="_blank" style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--meet);text-decoration:none;border:1px solid rgba(125,218,125,.2);padding:2px 7px">JOIN</a>`:''}<button class="out-cal-entry-del" onclick="deleteMeeting(${m.id});showOutDayDetail('${ds}')">✕</button></div>`;
+    list.appendChild(item);
+  });
+  dayEntries.forEach((e,idx)=>{
+    const item=document.createElement('div');item.className='out-cal-entry-item';item.style.animationDelay=((dayMeets.length+idx)*.05)+'s';
+    const rc=e.response==='Yes'?'resp-yes':e.response==='No'?'resp-no':'resp-pending';
+    item.innerHTML=`<div class="out-cal-entry-name">${esc(e.name)}</div><div class="out-cal-entry-meta"><span class="badge">${esc(e.channel)}</span><span class="resp-badge ${rc}">${esc(e.response)}</span>${e.notes?`<span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100px">${esc(e.notes)}</span>`:''}<button class="out-cal-entry-del" onclick="deleteEntryAndRefreshCal(${e.id})">✕</button></div>`;
+    list.appendChild(item);
+  });
+}
+
+/* ══ INIT ══ */
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+</script>
+</body>
+</html>
