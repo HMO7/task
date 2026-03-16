@@ -58,7 +58,7 @@ input,select,textarea,button{font-family:inherit}
 #app-page{display:none;min-height:100vh}
 #app-page.show{display:flex}
 .app-layout{display:flex;min-height:100vh;width:100%}
-.sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:300;transition:transform .25s ease;overflow:hidden;}
+.sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:300;transition:transform .25s ease;overflow:hidden;transform:translateX(0)}
 .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:299}
 .sb-brand{display:flex;align-items:center;gap:9px;padding:18px 14px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
 .sb-brand-dot{width:24px;height:24px;border-radius:3px;background:var(--white);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
@@ -86,8 +86,8 @@ input,select,textarea,button{font-family:inherit}
 .logout-btn{display:flex;align-items:center;gap:6px;margin:0 10px 10px;padding:7px 10px;border-radius:var(--r);border:1px solid var(--border);background:transparent;color:var(--text3);font-size:11px;cursor:pointer;transition:all .15s;font-family:'IBM Plex Mono',monospace;}
 .logout-btn:hover{border-color:var(--border2);color:var(--text2)}
 .main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-width:0}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:var(--topbar);border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:100;}
-.topbar-left{display:flex;align-items:center;gap:12px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:var(--topbar);border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:100;gap:8px}
+.topbar-left{display:flex;align-items:center;gap:8px;min-width:0;flex:1;overflow:hidden}
 .hamburger{display:none;background:none;border:none;color:var(--text2);cursor:pointer;padding:4px}
 .page-title{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:var(--text2);letter-spacing:.5px}
 .mode-tag{font-size:9px;font-family:'IBM Plex Mono',monospace;background:var(--bg3);border:1px solid var(--border2);padding:2px 8px;border-radius:2px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;}
@@ -393,17 +393,51 @@ table.tt td{padding:10px 12px;font-size:12px;vertical-align:middle}
 .toast.show{opacity:1}
 
 /* MOBILE */
-.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);z-index:200;padding-bottom:env(safe-area-inset-bottom)}
-.mobile-nav-inner{display:flex;justify-content:space-around}
-.mob-nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 8px;background:none;border:none;color:var(--text3);font-size:8px;font-family:'IBM Plex Mono',monospace;cursor:pointer;flex:1;text-transform:uppercase;letter-spacing:.5px;transition:color .15s}
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border2);z-index:200;padding-bottom:env(safe-area-inset-bottom)}
+.mobile-nav-inner{display:flex;justify-content:space-around;align-items:stretch}
+.mob-nav-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 6px 8px;background:none;border:none;color:var(--text3);font-size:9px;font-family:'IBM Plex Mono',monospace;cursor:pointer;flex:1;text-transform:uppercase;letter-spacing:.8px;transition:color .15s;min-width:0}
 .mob-nav-btn.active{color:var(--white)}
-.mob-nav-btn svg{width:17px;height:17px}
+.mob-nav-btn .mnav-icon{font-size:16px;line-height:1;margin-bottom:1px}
 .mob-nav-btn.out-mob.active{color:var(--meet)}
-.fab{display:none;position:fixed;bottom:68px;right:16px;width:46px;height:46px;border-radius:50%;background:var(--white);border:none;color:#000;font-size:20px;cursor:pointer;z-index:250;box-shadow:0 4px 18px rgba(0,0,0,.6);align-items:center;justify-content:center;line-height:1}
+.fab{display:none;position:fixed;bottom:76px;right:18px;width:48px;height:48px;border-radius:50%;background:var(--white);border:none;color:#000;font-size:22px;cursor:pointer;z-index:250;box-shadow:0 4px 20px rgba(0,0,0,.7);align-items:center;justify-content:center;line-height:1;font-weight:300}
 
 @media(max-width:1100px){.out-stats{grid-template-columns:repeat(3,1fr)}.channels-grid,.charts-row{grid-template-columns:1fr 1fr}}
 @media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr)}.out-stats{grid-template-columns:repeat(3,1fr)}.meet-layout{grid-template-columns:1fr}.out-cal-layout{grid-template-columns:1fr}.out-cal-detail{border-left:none;border-top:1px solid var(--border)}.form-row{grid-template-columns:1fr 1fr}}
-@media(max-width:680px){:root{--sidebar:0px}.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(calc(var(--sidebar,230px) + 230px))}.sidebar-overlay.show{display:block}.main{margin-left:0}.hamburger{display:flex}.mobile-nav{display:block}.fab{display:flex}.content{padding:14px 14px 72px}.stats-grid{grid-template-columns:repeat(2,1fr)}.out-stats{grid-template-columns:repeat(2,1fr)}.streak-msg{display:none}.streak-right{gap:8px}.stat-num{font-size:22px}.form-grid{grid-template-columns:1fr}.form-col-2{grid-column:1}.form-row{grid-template-columns:1fr}.form-row-bottom{grid-template-columns:1fr}.btn-log{width:100%;height:auto;padding:11px}.charts-row{grid-template-columns:1fr}.channels-grid{grid-template-columns:repeat(2,1fr)}.meet-layout{grid-template-columns:1fr}.mfrow{grid-template-columns:1fr}.mfrow.triple{grid-template-columns:1fr 1fr}.login-left{display:none}.login-right{width:100%;padding:36px 28px}.out-cal-layout{grid-template-columns:1fr}.topbar{padding:0 14px}.add-btn{padding:6px 10px;font-size:10px}}
+@media(max-width:680px){
+  :root{--sidebar:230px}
+  .sidebar{transform:translateX(-230px)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay.show{display:block}
+  .main{margin-left:0}
+  .hamburger{display:flex}
+  .mobile-nav.app-visible{display:block}
+  .fab.app-visible{display:flex}
+  .content{padding:14px 14px 72px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .out-stats{grid-template-columns:repeat(2,1fr)}
+  .streak-msg{display:none}
+  .streak-right{gap:8px}
+  .stat-num{font-size:22px}
+  .form-grid{grid-template-columns:1fr}
+  .form-col-2{grid-column:1}
+  .form-row{grid-template-columns:1fr}
+  .form-row-bottom{grid-template-columns:1fr}
+  .btn-log{width:100%;height:auto;padding:11px}
+  .charts-row{grid-template-columns:1fr}
+  .channels-grid{grid-template-columns:repeat(2,1fr)}
+  .meet-layout{grid-template-columns:1fr}
+  .mfrow{grid-template-columns:1fr}
+  .mfrow.triple{grid-template-columns:1fr 1fr}
+  .login-left{display:none}
+  .login-right{width:100%;padding:36px 28px}
+  .out-cal-layout{grid-template-columns:1fr}
+  .topbar{padding:0 14px}
+  .add-btn{padding:6px 10px;font-size:10px}
+  .time-btn{padding:9px 8px;font-size:9px;letter-spacing:1px}
+  .out-stat-num{font-size:28px}
+  .meet-form-panel{padding:20px 16px}
+  .entry-panel{padding:16px}
+}
 @media(max-width:380px){.streak-right{display:none}.out-stats{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -700,7 +734,7 @@ table.tt td{padding:10px 12px;font-size:12px;vertical-align:middle}
 
 <!-- MOBILE NAV -->
 <nav class="mobile-nav" id="mobile-nav" style="display:none"><div class="mobile-nav-inner" id="mob-nav-inner"></div></nav>
-<button class="fab" id="fab" onclick="fabClick()" aria-label="Add">+</button>
+<button class="fab" id="fab" onclick="fabClick()" aria-label="Add" style="display:none">+</button>
 
 <script>
 /* AUTH - SHA-256 hashed, rate limited */
@@ -777,6 +811,8 @@ function doLogout(){
   clearSess();currentUser=null;
   document.getElementById('app-page').classList.remove('show');
   document.getElementById('login-page').style.display='flex';
+  document.getElementById('mobile-nav').classList.remove('app-visible');
+  document.getElementById('fab').classList.remove('app-visible');
   document.getElementById('inp-email').value='';
   document.getElementById('inp-pass').value='';
   document.getElementById('login-error').classList.remove('show');
@@ -792,6 +828,8 @@ document.getElementById('inp-email').addEventListener('keydown',function(e){if(e
 function showApp(){
   document.getElementById('login-page').style.display='none';
   document.getElementById('app-page').classList.add('show');
+  document.getElementById('mobile-nav').classList.add('app-visible');
+  document.getElementById('fab').classList.add('app-visible');
   document.getElementById('sb-avatar').textContent=currentUser.name[0];
   document.getElementById('sb-uname').textContent=currentUser.name;
   document.getElementById('sb-urole').textContent=currentUser.role==='admin'?'Admin':'Partner';
@@ -857,7 +895,7 @@ function switchSection(name,btn){
   if(btn)btn.classList.add('active');
   document.getElementById('page-title').textContent=TITLES[name];
   if(name==='calendar'){refreshTaskCal();renderHeatmap();}
-  updateMobNav(name);
+  buildMobileNav();
 }
 
 function switchOutPage(name,btn){
@@ -872,37 +910,49 @@ function switchOutPage(name,btn){
   if(name==='out-records')renderRecords();
   if(name==='out-calendar')renderOutCalendar();
   if(name==='out-meetings')renderMeetings();
-  updateMobNav(name);
+  buildMobileNav();
 }
 
 /* MOBILE NAV */
 function buildMobileNav(){
   const inner=document.getElementById('mob-nav-inner');inner.innerHTML='';
-  document.getElementById('mobile-nav').style.display='block';
   if(currentApp==='tasks'){
-    [['dashboard','D','Dash'],['tasks','T','Tasks'],['calendar','C','Calendar']].forEach(function(item){
-      const sec=item[0],label=item[2];
+    [
+      {sec:'dashboard',icon:'⊞',label:'Dash'},
+      {sec:'tasks',    icon:'≡',label:'Tasks'},
+      {sec:'calendar', icon:'▦',label:'Cal'}
+    ].forEach(function(item){
       const b=document.createElement('button');
-      b.className='mob-nav-btn'+(document.getElementById('sec-'+sec).classList.contains('active')?' active':'');
-      b.innerHTML='<svg viewBox="0 0 20 20"><text x="3" y="14" font-size="12" fill="currentColor" stroke="none">'+item[1]+'</text></svg>'+label;
-      b.onclick=function(){switchSection(sec,document.querySelector('[data-sec="'+sec+'"]'));};
+      const isActive=document.getElementById('sec-'+item.sec).classList.contains('active');
+      b.className='mob-nav-btn'+(isActive?' active':'');
+      b.innerHTML='<span class="mnav-icon">'+item.icon+'</span><span>'+item.label+'</span>';
+      b.onclick=function(){switchSection(item.sec,document.querySelector('[data-sec="'+item.sec+'"]'));};
       inner.appendChild(b);
     });
-    const ob=document.createElement('button');ob.className='mob-nav-btn out-mob';
-    ob.innerHTML='<svg viewBox="0 0 20 20"><text x="2" y="14" font-size="11" fill="currentColor" stroke="none">O</text></svg>Outreach';
-    ob.onclick=function(){switchApp('outreach');};inner.appendChild(ob);
+    const ob=document.createElement('button');
+    ob.className='mob-nav-btn out-mob';
+    ob.innerHTML='<span class="mnav-icon" style="color:var(--meet)">◉</span><span>Outreach</span>';
+    ob.onclick=function(){switchApp('outreach');};
+    inner.appendChild(ob);
   }else{
-    [['out-dashboard','D','Dash'],['out-log','+','Log'],['out-records','R','Records'],['out-meetings','M','Meet']].forEach(function(item){
-      const pg=item[0],label=item[2];
+    [
+      {pg:'out-dashboard',icon:'◉', label:'Dash'},
+      {pg:'out-log',      icon:'+', label:'Log'},
+      {pg:'out-records',  icon:'⊟', label:'Records'},
+      {pg:'out-meetings', icon:'⬡', label:'Meet'}
+    ].forEach(function(item){
       const b=document.createElement('button');
-      b.className='mob-nav-btn out-mob'+(document.getElementById('sec-'+pg).classList.contains('active')?' active':'');
-      b.innerHTML='<svg viewBox="0 0 20 20"><text x="3" y="14" font-size="11" fill="currentColor" stroke="none">'+item[1]+'</text></svg>'+label;
-      b.onclick=function(){switchOutPage(pg,document.querySelector('[data-out="'+pg+'"]'));};
+      const isActive=document.getElementById('sec-'+item.pg).classList.contains('active');
+      b.className='mob-nav-btn out-mob'+(isActive?' active':'');
+      b.innerHTML='<span class="mnav-icon">'+item.icon+'</span><span>'+item.label+'</span>';
+      b.onclick=function(){switchOutPage(item.pg,document.querySelector('[data-out="'+item.pg+'"]'));};
       inner.appendChild(b);
     });
-    const tb=document.createElement('button');tb.className='mob-nav-btn';
-    tb.innerHTML='<svg viewBox="0 0 20 20"><text x="3" y="14" font-size="11" fill="currentColor" stroke="none">T</text></svg>Tasks';
-    tb.onclick=function(){switchApp('tasks');};inner.appendChild(tb);
+    const tb=document.createElement('button');
+    tb.className='mob-nav-btn';
+    tb.innerHTML='<span class="mnav-icon">⊞</span><span>Tasks</span>';
+    tb.onclick=function(){switchApp('tasks');};
+    inner.appendChild(tb);
   }
 }
 function updateMobNav(active){
