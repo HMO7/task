@@ -748,11 +748,11 @@ async function initUsers(){
   if(USERS)return;
   const h1=await sha256('Himanshu@07');
   const h2=await sha256('Ayushi@07');
-  const h2=await sha256('Keval@2002');
+  const h3=await sha256('Keval@2002');
   USERS=[
     {name:'Himanshu',email:'himanshu@dev.com',hash:h1,role:'admin'},
-    {name:'Ayushi',  email:'ayushi@dev.com',  hash:h2,role:'partner'}
-    {name:'Keval',  email:'keval@dev.com',  hash:h2,role:'partner'}
+    {name:'Ayushi',  email:'ayushi@dev.com',  hash:h2,role:'partner'},
+    {name:'Keval',   email:'keval@dev.com',   hash:h3,role:'partner'}
   ];
 }
 
